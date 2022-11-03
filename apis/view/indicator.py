@@ -46,7 +46,7 @@ def add_indicators(request):
 
 def indicators(request):
     '''
-    描述：获取指标列表
+    描述：获取指标列表66666
     方法：GET
     参数：
         system 
