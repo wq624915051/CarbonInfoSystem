@@ -1,4 +1,4 @@
-
+import json
 from common.base.base_respons import retJson
 from django.views.decorators.csrf import csrf_exempt
 
@@ -17,6 +17,21 @@ def add_indicators(request):
         name: 三级指标名称
         keywords: 关键词
     '''
+    indicator = {
+        "指标主题": "新增的三级指标",
+        "需求目的": "新增的三级指标",
+        "具体指标": [
+                {
+                    "具体指标名称": "新增的三级指标",
+                    "三级指标": [
+                        {
+                            "name": "新增的三级指标",
+                            "key_words": "碳, 排放"
+                        }
+                    ]
+                },
+        ]
+    }
     if request.method == 'GET':
         return retJson(code=0, msg="GET请求")
     elif request.method == 'POST':
@@ -43,7 +58,13 @@ def add_indicators(request):
         keywords = keywords.replace('\t', ',')
         keywords = keywords.replace(',,', ',')
 
-        return retJson(code=1, msg="success", data={"name": name, "keywords": keywords})
+        indicator["指标主题"] = name
+        indicator["需求目的"] = name
+        indicator["具体指标"][0]["具体指标名称"] = name
+        indicator["具体指标"][0]["三级指标"][0]["name"] = name
+        indicator["具体指标"][0]["三级指标"][0]["key_words"] = keywords
+
+        return retJson(code=1, msg="success", data={"indicator": json.dumps(indicator, ensure_ascii=False)})
 
 
 @csrf_exempt
