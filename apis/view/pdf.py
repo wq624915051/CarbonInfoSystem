@@ -2,8 +2,10 @@ import os
 import datetime
 from django.conf import settings
 from common.base.base_respons import retJson
+from django.views.decorators.csrf import csrf_exempt
 
 
+@csrf_exempt
 def upload_pdfs(request):
     """
     描述：上传pdf文件, 重命名后保存到本地, 并返回文件路径

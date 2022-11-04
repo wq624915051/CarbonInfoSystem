@@ -1,7 +1,9 @@
 
 from common.base.base_respons import retJson
+from django.views.decorators.csrf import csrf_exempt
 
 
+@csrf_exempt
 def add_indicators(request):
     '''
     描述：添加三级指标
@@ -44,6 +46,7 @@ def add_indicators(request):
         return retJson(code=1, msg="success", data={"name": name, "keywords": keywords})
 
 
+@csrf_exempt
 def indicators(request):
     '''
     描述：获取指标列表
