@@ -1,4 +1,5 @@
-
+import xlrd
+import json
 from common.base.base_respons import retJson
 
 
@@ -43,10 +44,40 @@ def add_indicators(request):
 
         return retJson(code=1, msg="success", data={"name": name, "keywords": keywords})
 
+def system1_dataget(filename):
+    data = []
+    excel_data = xlrd.open_workbook(filename=filename)
+    table = excel_data.sheets()[0]
+    merge = table.merged_cells
+    for tupe0 in merge:
+        if tupe0[2] == 0 and tupe0[3] == 1:
+            topic_temp = {} #指标主题和需求目的
+            indicators_list = []
+            topic_temp["指标主题"] = table.cell_value(tupe0[0],tupe0[2])
+            topic_temp["需求目的"] = table.cell_value(tupe0[0],tupe0[2] + 1)
+            for tupe1 in merge:
+                if tupe1[2] == 2 and tupe1[3] == 3 and tupe1[0] >= tupe0[0] and tupe1[1] <= tupe0[1]:
+                    indicators_temp = {}#具体指标
+                    last_indicator_list = []
+                    indicators_temp["具体指标名称"] = table.cell_value(tupe1[0],tupe1[2])
+                    for index in range(tupe1[0],tupe1[1]):
+                        last_indicator_temp = {}#三级指标
+                        last_indicator_temp["name"] = table.cell_value(index,tupe1[2] + 1)
+                        last_indicator_temp["keywords"] = table.cell_value(index,tupe1[2] + 2)
+                        last_indicator_list.append(last_indicator_temp)
+                    #print(last_indicator_list)
+                    indicators_temp["三级指标"] = last_indicator_list
+                    indicators_list.append(indicators_temp)
+            topic_temp["具体指标"] = indicators_list
+                # print(topic_temp)
+            data.append(topic_temp)
+                #print(data)
+    print(data)
+    return data
 
 def indicators(request):
     '''
-    描述：获取指标列表66666
+    描述：获取指标列表
     方法：GET
     参数：
         system 
@@ -80,12 +111,16 @@ def indicators(request):
 
     if request.method == 'GET':
         system = int(request.GET.get('system'))
-        res = {}
+        res = []
         if system == 1:
-
-            return retJson(code=1, msg="success", data={"indicators": res})
+            filename = r'D:\作业\研究生\研1\CarbonInfoSystem\data\副本碳信息披露质量指标体系.xlsx'
+            res = system1_dataget(filename)
+            return retJson(code=1, msg="success", data={"indicators": json.dumps(res,ensure_ascii=True)})
         elif system == 2:
 
             return retJson(code=1, msg="success", data={"indicators": res})
     elif request.method == 'POST':
         return retJson(code=0, msg="POST请求")
+    
+
+
