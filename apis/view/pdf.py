@@ -24,7 +24,7 @@ def upload_pdfs(request):
 
         # 创建以now命名的文件夹用于保存pdf
         now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        pdf_dir = os.path.join(settings.MEDIA_ROOT, now)
+        pdf_dir = os.path.join(settings.MEDIA_ROOT, "uploads", now)
         if not os.path.exists(pdf_dir):
             os.makedirs(pdf_dir)
 

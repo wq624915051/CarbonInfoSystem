@@ -1,5 +1,6 @@
 # CarbonInfoSystem
-media
+media/uploads/*
+media/downloads/*
 */__pycache__
 
 # Byte-compiled / optimized / DLL files
