@@ -13,7 +13,7 @@ def upload_pdfs(request):
     参数：
         files: pdf文件列表
     返回值:
-        pdf文件名列表
+        filepaths: list[string] pdf文件路径列表
     """
     if request.method == 'GET':
         return retJson(code=0, msg="GET请求")
@@ -28,12 +28,12 @@ def upload_pdfs(request):
         if not os.path.exists(pdf_dir):
             os.makedirs(pdf_dir)
 
-        filenames = []
+        filepaths = []
         for file in files:
             file_name = file.name
             file_path = os.path.join(pdf_dir, file_name)
-            filenames.append(file_path)
+            filepaths.append(file_path)
             with open(file_path, 'wb') as f:
                 for chunk in file.chunks():
                     f.write(chunk)
-        return retJson(code=1, msg="success", data={"filenames": filenames})
+        return retJson(code=1, msg="success", data={"filepaths": filepaths})

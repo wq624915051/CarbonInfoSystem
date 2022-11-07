@@ -17,8 +17,7 @@ def add_indicators(request):
         keywords: 关键词
         file: 关键词文件 (.txt文件 一行一个关键词)
     返回值:
-        name: 三级指标名称
-        keywords: 关键词
+        indicator: 新增三级指标
     '''
     indicator = {
         "指标主题": "新增的三级指标",
@@ -109,7 +108,7 @@ def indicators(request):
             system=1碳信息披露质量分析系统
             system=2企业碳中和发展分析系统
     返回值:
-        指标列表
+        indicators: 指标列表
     '''
     返回值示例 = [
         {
