@@ -1,4 +1,5 @@
 # CarbonInfoSystem
 
 ## TODO
-异常处理
+- [ ] PDF分析
+- [ ] 异常处理
