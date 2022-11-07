@@ -1,7 +1,10 @@
 # CarbonInfoSystem
+*/__pycache__
 media/uploads/*
 media/downloads/*
-*/__pycache__
+
+# except for .gitkeep
+!.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
