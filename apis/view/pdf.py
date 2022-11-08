@@ -1,9 +1,9 @@
 import os
 import datetime
 from django.conf import settings
-from common.base.base_respons import retJson
 from django.views.decorators.csrf import csrf_exempt
 
+from common.base.base_respons import retJson
 
 @csrf_exempt
 def upload_pdfs(request):
