@@ -2,6 +2,7 @@
 */__pycache__
 media/uploads/*
 media/downloads/*
+test.*
 
 # except for .gitkeep
 !.gitkeep
