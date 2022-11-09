@@ -1,3 +1,7 @@
+'''
+MyPDF类
+用于提取PDF文件中的文本
+'''
 import os
 import json
 import time
@@ -108,4 +112,5 @@ class MyPDF():
         content = pytesseract.image_to_string(img_gray, lang='chi_sim')
         return content
 
-pdf = MyPDF("D:\ALL\项目\碳信息披露\测试pdf\\600018-2021-可持续.PDF")
+if __name__ =="__main__":
+    pdf = MyPDF("D:\ALL\项目\碳信息披露\测试pdf\\600018-2021-可持续.PDF")

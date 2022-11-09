@@ -26,6 +26,8 @@ class AnalysisPDF():
         self.excel_base_path = excel_base_path
         self.date = datetime.datetime.now().strftime('%Y%m%d')
 
+        self.pdf = MyPDF(self.filepath) # 提取PDF内容存储到self.pdf.documnet_info
+
         self.example_result = {
             "company": "龙湖",
             "company_code": "123456",
