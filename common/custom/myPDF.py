@@ -13,27 +13,29 @@ from django.conf import settings
 
 
 class MyPDF():
-    def __init__(self, filepath) -> None:
+    def __init__(self, filepath, media_root=settings.MEDIA_ROOT) -> None:
         self.filepath = filepath
         self.documnet = fitz.open(filepath)
         self.documnet_info = []
+
+        # 保存图片的路径
+        self.media_root = media_root
+
         for pno, page in enumerate(self.documnet):
             page_info = page.get_text("dict")
             page_info["pno"] = pno
             page_type = self.judge_page_type(page_info)
             page_info["type"] = page_type
             if page_type == "text":
-                pass
+                # TODO 整合文本
+                content = ""
+                page_info["content"] = content
             elif page_type == "image":
                 img_list = page.get_images()  # 提取该页中的所有img
                 image = img_list[0]  # 只取第一张图片
 
-                # FIXME 测试用
-                # 图片保存路径
-                # img_save_path = os.path.join(settings.MEDIA_ROOT, 'temp_images', f"images_{pno}.png")
-                img_save_path = os.path.join("D:\ALL\项目\碳信息披露\CarbonInfoSystem\media", 'temp_images', f"images_{pno}.png")
-
                 # 保存图片
+                img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}.png")
                 self.save_image_page(image, img_save_path)  
 
                 # 获取图片中的文本
@@ -67,6 +69,31 @@ class MyPDF():
             return "image"  # 只有图片块，没有文本块
         else:
             return "text"
+    
+    def get_page_content(self, page_info):
+        '''
+        描述: 
+            获取页面的文本内容
+        参数：
+            page_info: 页面信息
+        返回值：
+            content: 页面的文本内容
+        '''
+        content = ""
+        blocks = page_info["blocks"]  # PDF页面的块
+        for block in blocks:
+            # 图片块，跳过
+            if block["type"] == 1:
+                continue
+
+            lines = block["lines"]
+            for line in lines:
+                spans = line["spans"]
+                for span in spans:
+                    content += span["text"]
+            content += "\n"
+        return content
+
 
     def save_image_page(self, image, save_path):
         '''
@@ -113,4 +140,6 @@ class MyPDF():
         return content
 
 if __name__ =="__main__":
-    pdf = MyPDF("D:\ALL\项目\碳信息披露\测试pdf\\600018-2021-可持续.PDF")
+    filepath = "D:\ALL\项目\碳信息披露\测试pdf\\600018-2021-可持续.PDF"
+    media_root = "D:\ALL\项目\碳信息披露\CarbonInfoSystem\media"
+    pdf = MyPDF(filepath, media_root=media_root)
