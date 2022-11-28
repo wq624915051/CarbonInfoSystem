@@ -13,22 +13,20 @@ from django.conf import settings
 
 
 class MyPDF():
-    def __init__(self, filepath, media_root=settings.MEDIA_ROOT) -> None:
+    def __init__(self, filepath, media_root) -> None:
         self.filepath = filepath
         self.documnet = fitz.open(filepath)
+        self.media_root = media_root # 保存图片的路径
+
         self.documnet_info = []
-
-        # 保存图片的路径
-        self.media_root = media_root
-
         for pno, page in enumerate(self.documnet):
             page_info = page.get_text("dict")
             page_info["pno"] = pno
             page_type = self.judge_page_type(page_info)
             page_info["type"] = page_type
             if page_type == "text":
-                # TODO 整合文本
-                content = ""
+                # 整合文本
+                content = self.get_textpage_content(page_info)
                 page_info["content"] = content
             elif page_type == "image":
                 img_list = page.get_images()  # 提取该页中的所有img
@@ -39,15 +37,14 @@ class MyPDF():
                 self.save_image_page(image, img_save_path)  
 
                 # 获取图片中的文本
-                content =  self.get_image_text(img_save_path) 
+                content =  self.get_image_content(img_save_path) 
                 page_info["content"] = content
                 
                 # 删除图片
                 self.delete_image(img_save_path)  
 
             self.documnet_info.append(page_info)
-            
-
+    
     def judge_page_type(self, page_info: dict):
         '''
         描述：
@@ -70,7 +67,7 @@ class MyPDF():
         else:
             return "text"
     
-    def get_page_content(self, page_info):
+    def get_textpage_content(self, page_info):
         '''
         描述: 
             获取页面的文本内容
@@ -93,7 +90,6 @@ class MyPDF():
                     content += span["text"]
             content += "\n"
         return content
-
 
     def save_image_page(self, image, save_path):
         '''
@@ -121,7 +117,7 @@ class MyPDF():
         '''
         os.remove(del_path)
 
-    def get_image_text(self, img_save_path):
+    def get_image_content(self, img_save_path):
         '''
         描述：使用 Tesseract 识别, 提取文字
         参数：
@@ -137,6 +133,17 @@ class MyPDF():
 
         # 使用 Tesseract 识别
         content = pytesseract.image_to_string(img_gray, lang='chi_sim')
+        return content
+
+    def get_pdf_content(self):
+        '''
+        描述：
+            获取pdf文件的文本内容
+        返回值：
+            content: pdf文件的文本内容
+        '''
+        content_list = [page["content"] for page in self.documnet_info]
+        content = "\n".join(content_list)
         return content
 
 if __name__ =="__main__":

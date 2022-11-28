@@ -26,6 +26,10 @@ res = [{
 
 
 import os
+import sys
+if True:
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 from common.custom.myPDF import MyPDF
 
 pdf_files_dir = "D:\ALL\项目\碳信息披露\测试pdf\\"
@@ -34,7 +38,11 @@ media_root = "D:\ALL\项目\碳信息披露\CarbonInfoSystem\media"
 
 for file in os.listdir(pdf_files_dir):
     file_path = os.path.join(pdf_files_dir, file)
+
+    print(f"{'='*10}\n{file}")
     my_pdf = MyPDF(file_path, media_root)
     documnet_info = my_pdf.documnet_info
 
+    print("\n")
     break
+
