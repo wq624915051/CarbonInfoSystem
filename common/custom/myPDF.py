@@ -13,12 +13,25 @@ from django.conf import settings
 
 
 class MyPDF():
+    '''
+    描述：MyPDF类，用于提取PDF文件中的文本
+    参数：
+        filepath: PDF文件路径
+        media_root: 保存图片的路径
+    成员变量：
+        documnet_info: list(page_info)
+        page_info: {
+            "pno": 页码,
+            "type": 页面类型,
+            "content": 页面内容
+        }
+    '''
     def __init__(self, filepath, media_root) -> None:
         self.filepath = filepath
         self.documnet = fitz.open(filepath)
         self.media_root = media_root # 保存图片的路径
 
-        self.documnet_info = []
+        self.documnet_info = [] # PDF每一页的信息
         for pno, page in enumerate(self.documnet):
             page_info = page.get_text("dict")
             page_info["pno"] = pno
@@ -40,8 +53,11 @@ class MyPDF():
                 content =  self.get_image_content(img_save_path) 
                 page_info["content"] = content
                 
-                # 删除图片
-                self.delete_image(img_save_path)  
+                # 方式一：逐个删除图片
+                # self.delete_image(img_save_path)
+            
+            # 方式二：批量删除图片
+            self.delete_images(os.path.join(self.media_root, 'temp_images'))  
 
             self.documnet_info.append(page_info)
     
@@ -111,11 +127,23 @@ class MyPDF():
     def delete_image(self, del_path):
         '''
         描述：
-            删除图片
+            逐个删除图片
         参数：
             del_path: 删除路径
         '''
-        os.remove(del_path)
+        os.remove(del_path)    
+    def delete_images(self, del_path):
+        '''
+        描述：
+            批量删除图片
+        参数：
+            del_path: 删除路径
+        '''
+        for file in os.listdir(del_path):
+            if file == ".gitkeep":
+                continue
+            else:
+                os.remove(os.path.join(del_path, file))
 
     def get_image_content(self, img_save_path):
         '''

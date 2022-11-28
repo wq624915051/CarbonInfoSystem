@@ -1,3 +1,7 @@
+'''
+AnalysisPDF类
+对每个PDF进行分析
+'''
 import os
 import datetime
 from django.conf import settings
