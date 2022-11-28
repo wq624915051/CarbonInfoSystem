@@ -136,7 +136,7 @@ def indicators(request):
         system = int(request.GET.get('system'))
         res = []
         if system == 1:
-            filename = os.path.join(settings.BASE_DIR, "data\碳信息披露质量指标体系.xls")
+            filename = os.path.join(settings.BASE_DIR, "data", "碳信息披露质量指标体系.xls")
             res = system1_dataget(filename)
             return retJson(code=1, msg="success", data={"indicators": res})
         elif system == 2:
