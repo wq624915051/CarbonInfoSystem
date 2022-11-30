@@ -59,7 +59,7 @@ def calculate(request):
         
         ############
         # FOR TEST #
-        return retJson(200, msg="success", data={"files_indicators": files_indicators})
+        return retJson(code=1, msg="success", data={"files_indicators": files_indicators})
         # FOR TEST #
         ############
 
