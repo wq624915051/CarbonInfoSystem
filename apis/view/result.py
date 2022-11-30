@@ -56,6 +56,12 @@ def calculate(request):
         w1 = request.POST.get('w1')
         w2 = request.POST.get('w2')
         w3 = request.POST.get('w3')
+        
+        ############
+        # FOR TEST #
+        return retJson(200, msg="success", data={"files_indicators": files_indicators})
+        # FOR TEST #
+        ############
 
         # 在media/downloads/下按时间生成文件夹
         now_time = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
