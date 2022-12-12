@@ -1,10 +1,9 @@
 import os
-import xlrd
 import json
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-
 from common.base.base_respons import retJson
+from common.custom.excel_option import read_indicators_from_excel
 
 @csrf_exempt
 def add_indicators(request):
@@ -69,34 +68,6 @@ def add_indicators(request):
         return retJson(code=1, msg="success", data={"indicator": json.dumps(indicator, ensure_ascii=False)})
 
 
-def system1_dataget(filename):
-    data = []  # 一级指标列表
-    excel_data = xlrd.open_workbook(filename=filename, formatting_info=True)
-    table = excel_data.sheets()[0]
-    merge = table.merged_cells
-    for tupe0 in merge:
-        if tupe0[2] == 0 and tupe0[3] == 1:
-            topic_temp = {}  # 指标主题和需求目的
-            topic_temp["指标主题"] = table.cell_value(tupe0[0], tupe0[2])
-            topic_temp["需求目的"] = table.cell_value(tupe0[0], tupe0[2] + 1)
-            indicators_list = []  # 二级指标列表
-            for tupe1 in merge:
-                if tupe1[2] == 2 and tupe1[3] == 3 and tupe1[0] >= tupe0[0] and tupe1[1] <= tupe0[1]:
-                    indicators_temp = {}  # 具体指标/二级指标
-                    indicators_temp["具体指标名称"] = table.cell_value(tupe1[0], tupe1[2])
-                    last_indicator_list = []  # 三级指标列表
-                    for index in range(tupe1[0], tupe1[1]):
-                        last_indicator_temp = {}  # 三级指标
-                        last_indicator_temp["name"] = table.cell_value(index, tupe1[2] + 1)
-                        last_indicator_temp["keywords"] = table.cell_value(index, tupe1[2] + 2)
-                        last_indicator_list.append(last_indicator_temp)
-                    indicators_temp["三级指标"] = last_indicator_list
-                    indicators_list.append(indicators_temp)
-            topic_temp["具体指标"] = indicators_list
-            data.append(topic_temp)
-    return data
-
-
 @csrf_exempt
 def indicators(request):
     '''
@@ -136,8 +107,8 @@ def indicators(request):
         system = int(request.GET.get('system'))
         res = []
         if system == 1:
-            filename = os.path.join(settings.BASE_DIR, "data", "碳信息披露质量指标体系.xls")
-            res = system1_dataget(filename)
+            filepath = os.path.join(settings.BASE_DIR, "data", "碳信息披露质量指标体系.xls")
+            res = read_indicators_from_excel(filepath)
             return retJson(code=1, msg="success", data={"indicators": res})
         elif system == 2:
 
