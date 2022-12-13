@@ -27,7 +27,7 @@ def add_indicators(request):
                     "三级指标": [
                         {
                             "name": "新增的三级指标",
-                            "key_words": "碳, 排放"
+                            "keywords": "碳, 排放"
                         }
                     ]
                 },
@@ -68,7 +68,7 @@ def add_indicators(request):
         indicator["需求目的"] = name
         indicator["具体指标"][0]["具体指标名称"] = name
         indicator["具体指标"][0]["三级指标"][0]["name"] = name
-        indicator["具体指标"][0]["三级指标"][0]["key_words"] = keywords
+        indicator["具体指标"][0]["三级指标"][0]["keywords"] = keywords
 
         return retJson(code=1, msg="success", data={"indicator": indicator})
 
@@ -96,11 +96,11 @@ def get_indicators(request):
                     "三级指标": [
                         {
                             "name": "碳减排过程中的风险识别与评估",
-                            "key_words": "碳, xxx"
+                            "keywords": "碳, xxx"
                         },
                         {
                             "name": "气候变化给企业带来的财务风险",
-                            "key_words": "财务, xxx"
+                            "keywords": "财务, xxx"
                         },
                     ]
                 },
