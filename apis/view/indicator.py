@@ -49,6 +49,9 @@ def add_indicators(request):
             keywords = request.POST.get('keywords')
             if not keywords:
                 return retJson(code=0, msg="请填写关键词")
+        
+        else:
+            return retJson(code=0, msg="关键词类型需为 'file' | 'keywords'")
 
         # 处理keywords
         keywords = keywords.replace(' ', ',')
@@ -65,7 +68,7 @@ def add_indicators(request):
         indicator["具体指标"][0]["三级指标"][0]["name"] = name
         indicator["具体指标"][0]["三级指标"][0]["key_words"] = keywords
 
-        return retJson(code=1, msg="success", data={"indicator": json.dumps(indicator, ensure_ascii=False)})
+        return retJson(code=1, msg="success", data={"indicator": indicator})
 
 
 @csrf_exempt
