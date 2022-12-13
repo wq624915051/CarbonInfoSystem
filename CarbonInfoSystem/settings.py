@@ -119,12 +119,8 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # CORS配置
-# CORS配置 1. 设置白名单
-CORS_ORIGIN_WHITELIST = (
-    # 凡是出现在白名单中的域名，都可以访问后端接口
-    'http://127.0.0.1:8000',
-)
-# CORS配置 2. 设置 CORS Cookie
+# CORS_ORIGIN_WHITELIST = () # 指明允许访问后端接口的域名 
+CORS_ORIGIN_ALLOW_ALL = True # 指明是否允许所有的域名访问后端接口
 CORS_ALLOW_CREDENTIALS = True  # 指明在跨域访问中，后端是否支持对cookie的操作
 
 # 配置MEDIA_ROOT
