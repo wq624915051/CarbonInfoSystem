@@ -103,12 +103,13 @@ def get_indicators(request):
 
     if request.method == 'GET':
         system = int(request.GET.get('system'))
-        res = []
         if system == 1:
             filepath = os.path.join(settings.BASE_DIR, "data", "碳信息披露质量指标体系.xls")
             res = read_indicators_from_excel(filepath)
             return retJson(code=1, msg="success", data={"indicators": res})
         elif system == 2:
+            filepath = os.path.join(settings.BASE_DIR, "data", "企业碳中和发展指标体系.xls") # TODO
+            res = read_indicators_from_excel(filepath)
             return retJson(code=1, msg="success", data={"indicators": res})
         else:
             return retJson(code=0, msg="参数只能为1或2")
