@@ -99,24 +99,21 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
-
-TIME_ZONE = "UTC"
-
-USE_I18N = True
-
-USE_TZ = True
+LANGUAGE_CODE = "en-us" # 语言设置为英文
+TIME_ZONE = "UTC" # 时区设置为UTC
+USE_I18N = True # 是否使用国际化
+USE_TZ = True # 是否使用时区
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "static/" # 配置静态文件路径
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField" # 为了兼容Django3.2
 
 # CORS配置
 # CORS_ORIGIN_WHITELIST = () # 指明允许访问后端接口的域名 
