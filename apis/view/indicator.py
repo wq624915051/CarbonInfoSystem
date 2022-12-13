@@ -69,7 +69,7 @@ def add_indicators(request):
 
 
 @csrf_exempt
-def indicators(request):
+def get_indicators(request):
     '''
     描述：获取指标列表
     方法：GET
@@ -111,7 +111,8 @@ def indicators(request):
             res = read_indicators_from_excel(filepath)
             return retJson(code=1, msg="success", data={"indicators": res})
         elif system == 2:
-
             return retJson(code=1, msg="success", data={"indicators": res})
+        else:
+            return retJson(code=0, msg="参数只能为1或2")
     elif request.method == 'POST':
         return retJson(code=0, msg="POST请求")
