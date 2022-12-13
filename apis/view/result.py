@@ -1,4 +1,5 @@
 import os
+import json
 import datetime
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
@@ -51,15 +52,16 @@ def calculate(request):
 
     if request.method == 'POST':
         # 获取参数
-        indicators = request.POST.get('indicators')
-        filepaths = request.POST.get('filepaths')
-        w1 = request.POST.get('w1')
-        w2 = request.POST.get('w2')
-        w3 = request.POST.get('w3')
+        received_json_data = json.loads(request.body.decode().replace("'", "\""))
+        indicators = received_json_data.get('indicators')
+        filepaths = received_json_data.get('filepaths')
+        w1 = received_json_data.get('w1')
+        w2 = received_json_data.get('w2')
+        w3 = received_json_data.get('w3')
         
         ############
         # FOR TEST #
-        return retJson(code=1, msg="success", data={"files_indicators": files_indicators})
+        # return retJson(code=1, msg="success", data={"files_indicators": files_indicators})
         # FOR TEST #
         ############
 
@@ -69,7 +71,7 @@ def calculate(request):
         if not os.path.exists(excel_base_path):
             os.makedirs(excel_base_path)
 
-        # 遍历每个PDF文件
+        # 遍历每个PDF文件，进行分析计算
         files_indicators = []
         for filepath in filepaths:
             analysis_pdf = AnalysisPDF(filepath, indicators, w1, w2, w3, excel_base_path)

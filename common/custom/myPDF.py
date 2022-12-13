@@ -132,6 +132,7 @@ class MyPDF():
             del_path: 删除路径
         '''
         os.remove(del_path)    
+    
     def delete_images(self, del_path):
         '''
         描述：

@@ -7,7 +7,7 @@ import datetime
 from django.conf import settings
 
 from common.custom.myPDF import MyPDF
-
+from common.custom.excel_processor import write_indicators_to_excel
 
 class AnalysisPDF():
     '''
@@ -69,7 +69,11 @@ class AnalysisPDF():
         self.company_code = self.get_company_code()
         self.result["company_code"] = self.company_code
 
-        # # 对每个指标进行分析, 结果保存到 self.indicators 中
+        # Execl文件保存路径
+        self.execl_filename = f"{self.company_code}_{self.company_name}_{self.date}.xlsx"
+        self.execl_filepath = os.path.join(self.excel_base_path, self.execl_filename)
+
+        # 每个指标进行分析, 结果保存到 self.indicators 中
         for indicator_level_1 in self.indicators:
             for indicator_level_2 in indicator_level_1["具体指标"]:
                 for indicator_level_3 in indicator_level_2["三级指标"]:
@@ -77,9 +81,11 @@ class AnalysisPDF():
                     indicator_level_3["文字内容"] = ""
                     indicator_level_3["图片数量"] = 0
                     indicator_level_3["表格数量"] = 0
+                    print(indicator_level_3)
 
         self.result["indicators"] = self.indicators
-        self.result["filepath"] = self.save_indicators()
+        self.result["filepath"] = self.execl_filepath
+        # write_indicators_to_excel(self.execl_filepath, self.result["indicators"])
 
     def get_company_name(self):
         '''
@@ -103,15 +109,65 @@ class AnalysisPDF():
         company_code = company.split('_')[0]
         return company_code
 
-    def save_indicators(self):
-        '''
-        描述：保存指标到EXCEL中
-        返回值：
-            filepath: string 保存的文件路径
-        '''
-        filename = f"{self.company_code}_{self.company_name}_{self.date}.xlsx"
-        filepath = os.path.join(self.excel_base_path, filename)
 
-        # TODO 保存 self.indicators 到filepath中
+if __name__ == "__main__":
+    # 测试
+    w1, w2, w3 = 1, 1, 1
+    filepath = "D:/ALL/项目/碳信息披露/测试pdf/002916_深南电路_2021.PDF"
+    excel_base_path = "D:/ALL/项目/碳信息披露/CarbonInfoSystem/media/ownloads/"
+    
+    
+    indicators = [
+            {
+                "指标主题": "股东和投资者",
+                "需求目的": "投资与融资决策依据；企业低碳战略及管理决策依据",
+                "具体指标": [
+                    {
+                        "具体指标名称": "碳排放风险与机遇",
+                        "三级指标": [
+                            {
+                                "name": "碳减排过程中的风险识别与评估",
+                                "keywords": "环境风险、环保风险、碳中和风险、能源风险、节能风险、风险"
+                            },
+                            {
+                                "name": "气候变化给企业带来的财务风险",
+                                "keywords": "成本节约、财务风险、成本增加、价格、浮动"
+                            },
+                            {
+                                "name": "企业碳排放所受的政府管制风险",
+                                "keywords": "政策风险、法律风险、法规风险"
+                            },
+                            {
+                                "name": "碳减排可能给企业带来的机遇",
+                                "keywords": "机遇、成本节约、减少成本、降低成本、增加收入、应对"
+                            },
+                            {
+                                "name": "碳汇过程中的可逆性风险（如森林火灾等）",
+                                "keywords": "森林火灾"
+                            }
+                        ]
+                    }
+                    ]
+            }
+            ]
+    
 
-        return filepath
+    indicators = [
+        {
+            "指标主题": "指标主题",
+            "需求目的": "需求目的",
+            "具体指标": [
+                {
+                    "具体指标名称": "具体指标名称",
+                    "三级指标": [
+                        {
+                            "name": "三级指标名称",
+                            "keywords": "碳排放，中和",
+                        }
+                    ]
+                },
+            ]
+        },
+    ]
+    analysis_pdf = AnalysisPDF(filepath, indicators, w1, w2, w3, excel_base_path)
+
