@@ -41,10 +41,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -117,7 +117,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField" # 为了兼容Django3.2
 
 # CORS配置
 # CORS_ORIGIN_WHITELIST = () # 指明允许访问后端接口的域名 
-CORS_ORIGIN_ALLOW_ALL = True # 指明是否允许所有的域名访问后端接口
+CORS_ORIGIN_ALLOW_ALL = True # 指明是否允许所有的域名访问后端接口 
 CORS_ALLOW_CREDENTIALS = True  # 指明在跨域访问中，后端是否支持对cookie的操作
 
 # 配置MEDIA_ROOT
