@@ -57,6 +57,8 @@ def add_indicators(request):
         keywords = keywords.replace(' ', ',')
         keywords = keywords.replace('，', ',')
         keywords = keywords.replace('、', ',')
+        keywords = keywords.replace('；', ',')
+        keywords = keywords.replace(';', ',')
         keywords = keywords.replace('\n', ',')
         keywords = keywords.replace('\r', ',')
         keywords = keywords.replace('\t', ',')
