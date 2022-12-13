@@ -3,7 +3,7 @@ import json
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from common.base.base_respons import retJson
-from common.custom.excel_option import read_indicators_from_excel
+from common.custom.excel_processor import read_indicators_from_excel
 
 @csrf_exempt
 def add_indicators(request):
