@@ -4,6 +4,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from common.base.base_respons import retJson
 from common.custom.excel_processor import read_indicators_from_excel
+from common.custom.keywords_processor import process_keywords
 
 @csrf_exempt
 def add_indicators(request):
@@ -54,15 +55,7 @@ def add_indicators(request):
             return retJson(code=0, msg="关键词类型需为 'file' | 'keywords'")
 
         # 处理keywords
-        keywords = keywords.replace(' ', ',')
-        keywords = keywords.replace('，', ',')
-        keywords = keywords.replace('、', ',')
-        keywords = keywords.replace('；', ',')
-        keywords = keywords.replace(';', ',')
-        keywords = keywords.replace('\n', ',')
-        keywords = keywords.replace('\r', ',')
-        keywords = keywords.replace('\t', ',')
-        keywords = keywords.replace(',,', ',')
+        keywords = process_keywords(keywords)
 
         indicator["指标主题"] = name
         indicator["需求目的"] = name
