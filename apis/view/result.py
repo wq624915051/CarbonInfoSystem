@@ -55,9 +55,10 @@ def calculate(request):
         received_json_data = json.loads(request.body.decode().replace("'", "\""))
         indicators = received_json_data.get('indicators')
         filepaths = received_json_data.get('filepaths')
-        w1 = received_json_data.get('w1')
-        w2 = received_json_data.get('w2')
-        w3 = received_json_data.get('w3')
+        systemId = int(received_json_data.get('system'))
+        w1 = float(received_json_data.get('w1'))
+        w2 = float(received_json_data.get('w2'))
+        w3 = float(received_json_data.get('w3'))
         
         ############
         # FOR TEST #
@@ -65,7 +66,7 @@ def calculate(request):
         # FOR TEST #
         ############
 
-        # 在media/downloads/下按时间生成文件夹
+        # 在media/downloads/下按时间生成文件夹, 用于存放分析结果Excel
         now_time = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         excel_base_path = os.path.join(settings.MEDIA_ROOT, "downloads", now_time)
         if not os.path.exists(excel_base_path):
@@ -74,7 +75,7 @@ def calculate(request):
         # 遍历每个PDF文件，进行分析计算
         files_indicators = []
         for filepath in filepaths:
-            analysis_pdf = AnalysisPDF(filepath, indicators, w1, w2, w3, excel_base_path)
+            analysis_pdf = AnalysisPDF(filepath, indicators,systemId, w1, w2, w3, excel_base_path)
             files_indicators.append(analysis_pdf.result)
 
         # 返回结果
