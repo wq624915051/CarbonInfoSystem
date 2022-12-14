@@ -20,14 +20,14 @@ def add_indicators(request):
         indicator: 新增三级指标
     '''
     indicator = {
-        "指标主题": "新增的三级指标",
-        "需求目的": "新增的三级指标",
-        "具体指标": [
+        "一级指标": "新增的一级指标",
+        "需求目的": "新增的一级指标",
+        "二级指标": [
                 {
-                    "具体指标名称": "新增的三级指标",
+                    "二级指标名称": "新增的二级指标",
                     "三级指标": [
                         {
-                            "name": "新增的三级指标",
+                            "三级指标名称": "新增的三级指标",
                             "keywords": "碳, 排放"
                         }
                     ]
@@ -57,11 +57,11 @@ def add_indicators(request):
         # 处理keywords
         keywords = process_keywords(keywords)
 
-        indicator["指标主题"] = name
+        indicator["一级指标"] = name
         indicator["需求目的"] = name
-        indicator["具体指标"][0]["具体指标名称"] = name
-        indicator["具体指标"][0]["三级指标"][0]["name"] = name
-        indicator["具体指标"][0]["三级指标"][0]["keywords"] = keywords
+        indicator["二级指标"][0]["二级指标名称"] = name
+        indicator["二级指标"][0]["三级指标"][0]["三级指标名称"] = name
+        indicator["二级指标"][0]["三级指标"][0]["keywords"] = keywords
 
         return retJson(code=1, msg="success", data={"indicator": indicator})
 
@@ -104,7 +104,7 @@ def get_indicators(request):
     if request.method == 'GET':
         system = int(request.GET.get('system'))
         if system == 1:
-            filepath = os.path.join(settings.BASE_DIR, "data", "碳信息披露质量指标体系.xls")
+            filepath = os.path.join(settings.BASE_DIR, "data", "碳信息披露质量关键词.xls")
             res = read_indicators_from_excel(filepath)
             return retJson(code=1, msg="success", data={"indicators": res})
         elif system == 2:
