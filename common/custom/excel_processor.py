@@ -22,7 +22,7 @@ def read_indicators_from_excel(filepath):
             indicators_list = []  # 二级指标列表
             for tupe1 in merge:
                 if tupe1[2] == 2 and tupe1[3] == 3 and tupe1[0] >= tupe0[0] and tupe1[1] <= tupe0[1]:
-                    indicators_temp = {}  # 具体指标/二级指标
+                    indicators_temp = {}  # 二级指标
                     indicators_temp["二级指标名称"] = table.cell_value(tupe1[0], tupe1[2])
                     last_indicator_list = []  # 三级指标列表
                     for index in range(tupe1[0], tupe1[1]):
