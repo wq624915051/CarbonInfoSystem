@@ -21,9 +21,10 @@ class AnalysisPDF():
         excel_base_path: string excel文件存放路径
     '''
 
-    def __init__(self, filepath, indicators, w1, w2, w3, excel_base_path) -> None:
+    def __init__(self, filepath, indicators, systemId, w1, w2, w3, excel_base_path) -> None:
         self.filepath = filepath
         self.indicators = indicators
+        self.systemId = systemId
         self.w1 = w1
         self.w2 = w2
         self.w3 = w3
@@ -75,9 +76,11 @@ class AnalysisPDF():
 
         # 每个指标进行分析, 结果保存到 self.indicators 中
         for indicator_level_1 in self.indicators:
-            for indicator_level_2 in indicator_level_1["具体指标"]:
+            for indicator_level_2 in indicator_level_1["二级指标"]:
                 for indicator_level_3 in indicator_level_2["三级指标"]:
-                    # TODO
+                    indicator_level_3_name = indicator_level_3["三级指标名称"]
+                    indicator_level_3_keywords = [keyword.strip() for keyword in indicator_level_3["keywords"].split(',')]
+                    self.analysis_with_keywords(indicator_level_3_name, indicator_level_3_keywords)
                     indicator_level_3["文字内容"] = ""
                     indicator_level_3["图片数量"] = 0
                     indicator_level_3["表格数量"] = 0
@@ -109,13 +112,39 @@ class AnalysisPDF():
         company_code = company.split('_')[0]
         return company_code
 
+    def analysis_with_keywords(self, name, keywords):
+        '''
+        描述：根据三级指标关键词进行分析
+        参数：
+            name: string 指标名称
+            keywords: list 关键词列表
+        返回值：
+            text: string 提取的文字内容
+        '''
+        if name == "高管致辞":
+            pass
+        elif name == "范围一碳排放量（万吨二氧化碳当量）":
+            pass
+        elif name == "范围二碳排放量":
+            pass
+        elif name == "范围三碳排放量":
+            pass
+        elif name == "":
+            pass
+        elif name == "":
+            pass
+        else:
+            pass
+        text = ""
+        
+        return text
+
 
 if __name__ == "__main__":
     # 测试
     w1, w2, w3 = 1, 1, 1
     filepath = "D:/ALL/项目/碳信息披露/测试pdf/002916_深南电路_2021.PDF"
     excel_base_path = "D:/ALL/项目/碳信息披露/CarbonInfoSystem/media/ownloads/"
-    
     
     indicators = [
             {
@@ -150,24 +179,6 @@ if __name__ == "__main__":
                     ]
             }
             ]
-    
 
-    indicators = [
-        {
-            "指标主题": "指标主题",
-            "需求目的": "需求目的",
-            "具体指标": [
-                {
-                    "具体指标名称": "具体指标名称",
-                    "三级指标": [
-                        {
-                            "name": "三级指标名称",
-                            "keywords": "碳排放，中和",
-                        }
-                    ]
-                },
-            ]
-        },
-    ]
     analysis_pdf = AnalysisPDF(filepath, indicators, w1, w2, w3, excel_base_path)
 
