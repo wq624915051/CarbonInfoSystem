@@ -2,56 +2,54 @@ import xlrd
 import xlwt
 from common.custom.keywords_processor import split_keywords_with_comma
 
-def read_esg_from_excel(filepath):
+def read_ESG_from_excel(filepath):
     '''
     描述:从excel中读取ESG评级以及股权融资优势
     参数:
-        filepath:Excel文件路径
+        filepath: Excel文件路径
     返回值:
         data:每个公司的对应年份股权融资以及ESG评级列表
     '''
-    examp_data = {
-    "000001":{
-        "公司代码":"000001",
-        "公司简称":"平安银行",
-        "年份记录":[2020,2021],
-        "2020":{"股权融资优势":3,"ESG评级":1},
-        "2021":{"股权融资优势":2,"ESG评级":2}
-    }
+    example_data = {
+        "000001": {
+            "公司代码": "000001",
+            "公司简称": "平安银行",
+            "年份记录": [2020, 2021],
+            "2020": {"股权融资优势": 3, "ESG评级": 1},
+            "2021": {"股权融资优势": 2, "ESG评级": 2}
+        }
     }
     data = {}
     excel_data = xlrd.open_workbook(filename=filepath)
     esg_table = excel_data.sheets()[0]
     lines = len(esg_table.col(0))
-    for row in range(3,lines):
-        temp_dict = {} #一个公司对应一个dict
+    for row in range(3, lines):
+        temp_dict = {} # 一个公司对应一个dict
         temp_dict["年份记录"] = []
-        print(len(esg_table.row_values(row)))
-        for col in range(0,len(esg_table.row_values(row))):
-            if esg_table.cell_value(1,col) == "公司代码":
-                temp_dict["公司代码"] = esg_table.cell_value(row,col)
-            elif esg_table.cell_value(1,col) == "公司简称":
-                temp_dict["公司简称"] = esg_table.cell_value(row,col)
-            elif esg_table.cell_value(1,col) == "年份":
-                if esg_table.cell_value(row,col)!='':
-                    temp_dict["年份记录"].append(int(esg_table.cell_value(row,col)))
-                    esg_dict = {}
-                    esg_dict["股权融资优势"] = esg_table.cell_value(row,col+1)
-                    esg_dict["ESG评级"] = esg_table.cell_value(row,col+2)
+        for col in range(0, len(esg_table.row_values(row))):
+            if esg_table.cell_value(1, col) == "公司代码":
+                temp_dict["公司代码"] = esg_table.cell_value(row, col)
+            elif esg_table.cell_value(1, col) == "公司简称":
+                temp_dict["公司简称"] = esg_table.cell_value(row, col)
+            elif esg_table.cell_value(1, col) == "年份":
+                if esg_table.cell_value(row, col) != '':
+                    temp_dict["年份记录"].append(int(esg_table.cell_value(row, col)))
+                    esg_dict = {
+                        "股权融资优势": esg_table.cell_value(row, col+1),
+                        "ESG评级": esg_table.cell_value(row, col+2)
+                    }
                     temp_dict[int(esg_table.cell_value(row,col))] = esg_dict
-            else:
-                pass
         data[esg_table.cell_value(row,0)] = temp_dict
     return data
 
 def read_terms_from_excel(filepath,type):
     '''
-    描述:从excel读取词库
+    描述: 从excel读取词库
     参数:
-        filepath:Excel文件路径
-        type:读取词库类型,type==0读取专有名词,type==1读取常用词
+        filepath: Excel文件路径
+        type: 读取词库类型, type==0读取专有名词, type==1读取常用词
     返回值:
-        terms:词列表
+        terms: 词列表
     '''
     excel_data = xlrd.open_workbook(filename=filepath)
     term_table = excel_data.sheets()[type]
@@ -172,55 +170,55 @@ def write_indicators_to_excel(filepath, data):
         first_begin = sed_begin
     workbook.save(filepath)
 
-# if __name__ == '__main__':
-#     #res = read_terms_from_excel(filepath="D:\作业\研究生\研1\CarbonInfoSystem\data\所需表.xls",type=1)
-#     res = read_esg_from_excel(filepath="D:\作业\研究生\研1\CarbonInfoSystem\data\数据-股权融资优势和ESG评级.xls")
-#     print(res)
+if __name__ == '__main__':
+    res = read_terms_from_excel(filepath="D:\作业\研究生\研1\CarbonInfoSystem\data\所需表.xls",type=1)
+    res = read_ESG_from_excel(filepath="D:\作业\研究生\研1\CarbonInfoSystem\data\数据-股权融资优势和ESG评级.xls")
+    print(res)
     
-#     example_data = [
-#         {
-#             "一级指标": "一级指标",
-#             "需求目的": "需求目的",
-#             "二级指标": [
-#                 {
-#                     "二级指标名称": "二级指标名称",
-#                     "三级指标": [
-#                         {
-#                             "三级指标名称": "三级指标名称",
-#                             "keywords": "碳排放，中和",
-#                             "文字内容": "碳排放碳排放碳排放碳排放",
-#                             "图片数量": 18,
-#                             "表格数量": 15
-#                         },
-#                         {
-#                             "三级指标名称": "三级指标名称",
-#                             "keywords": "碳排放，中和",
-#                             "文字内容": "碳排放碳排放碳排放碳排放",
-#                             "图片数量": 18,
-#                             "表格数量": 15
-#                         }
-#                     ]
-#                 },
-#                 {
-#                     "二级指标名称": "二级指标名称",
-#                     "三级指标": [
-#                         {
-#                             "三级指标名称": "三级指标名称",
-#                             "keywords": "碳排放，中和",
-#                             "文字内容": "碳排放碳排放碳排放碳排放",
-#                             "图片数量": 18,
-#                             "表格数量": 15
-#                         },
-#                         {
-#                             "三级指标名称": "三级指标名称",
-#                             "keywords": "碳排放，中和",
-#                             "文字内容": "碳排放碳排放碳排放碳排放",
-#                             "图片数量": 18,
-#                             "表格数量": 15
-#                         }
-#                     ]
-#                 },
-#             ]
-#         },
-#     ]
-#     write_indicators_to_excel(data=example_data,filepath='test.xls')
+    example_data = [
+        {
+            "一级指标": "一级指标",
+            "需求目的": "需求目的",
+            "二级指标": [
+                {
+                    "二级指标名称": "二级指标名称",
+                    "三级指标": [
+                        {
+                            "三级指标名称": "三级指标名称",
+                            "keywords": "碳排放，中和",
+                            "文字内容": "碳排放碳排放碳排放碳排放",
+                            "图片数量": 18,
+                            "表格数量": 15
+                        },
+                        {
+                            "三级指标名称": "三级指标名称",
+                            "keywords": "碳排放，中和",
+                            "文字内容": "碳排放碳排放碳排放碳排放",
+                            "图片数量": 18,
+                            "表格数量": 15
+                        }
+                    ]
+                },
+                {
+                    "二级指标名称": "二级指标名称",
+                    "三级指标": [
+                        {
+                            "三级指标名称": "三级指标名称",
+                            "keywords": "碳排放，中和",
+                            "文字内容": "碳排放碳排放碳排放碳排放",
+                            "图片数量": 18,
+                            "表格数量": 15
+                        },
+                        {
+                            "三级指标名称": "三级指标名称",
+                            "keywords": "碳排放，中和",
+                            "文字内容": "碳排放碳排放碳排放碳排放",
+                            "图片数量": 18,
+                            "表格数量": 15
+                        }
+                    ]
+                },
+            ]
+        },
+    ]
+    write_indicators_to_excel(data=example_data,filepath='test.xls')
