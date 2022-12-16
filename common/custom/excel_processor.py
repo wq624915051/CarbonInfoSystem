@@ -1,6 +1,21 @@
 import xlrd
 import xlwt
-from common.custom.keywords_processor import process_keywords
+#from common.custom.keywords_processor import process_keywords
+
+def read_terms_from_excel(filepath,type):
+    '''
+    描述:从excel读取词库
+    参数:
+        filepath:Excel文件路径
+        type:读取词库类型,type==0读取专有名词,type==1读取常用词
+    返回值:
+        terms:词列表
+    '''
+    excel_data = xlrd.open_workbook(filename=filepath)
+    term_table = excel_data.sheets()[type]
+    terms = term_table.col_values(0)
+
+    return terms
 
 def read_indicators_from_excel(filepath):
     '''
@@ -116,6 +131,8 @@ def write_indicators_to_excel(filepath, data):
     workbook.save(filepath)
 
 # if __name__ == '__main__':
+#     res = read_terms_from_excel(filepath="D:\作业\研究生\研1\CarbonInfoSystem\data\所需表.xls",type=1)
+#     print(res)
     
 #     example_data = [
 #         {
