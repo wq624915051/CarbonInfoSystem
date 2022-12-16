@@ -9,7 +9,7 @@ cd CarbonInfoSystem
 # 构建docker镜像
 docker build --pull --rm -f "Dockerfile" -t carbon_info_system "." 
 # 运行docker容器
-docker run -dp 10086:10086 -v PATH2FILE:/code carbon_info_system
+docker run -dp PORT:10086 -v PATH2FILE:/code carbon_info_system
 ```
 
 ## TODO

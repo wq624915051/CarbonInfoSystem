@@ -1,6 +1,6 @@
 import xlrd
 import xlwt
-from common.custom.keywords_processor import process_keywords
+from common.custom.keywords_processor import split_keywords_with_comma
 
 def read_indicators_from_excel(filepath):
     '''
@@ -28,7 +28,7 @@ def read_indicators_from_excel(filepath):
                     for index in range(tupe1[0], tupe1[1]):
                         last_indicator_temp = {}  # 三级指标
                         last_indicator_temp["三级指标名称"] = table.cell_value(index, tupe1[2] + 1)
-                        last_indicator_temp["keywords"] = process_keywords(table.cell_value(index, tupe1[2] + 2))
+                        last_indicator_temp["keywords"] = split_keywords_with_comma(table.cell_value(index, tupe1[2] + 2))
                         last_indicator_list.append(last_indicator_temp)
                     indicators_temp["三级指标"] = last_indicator_list
                     indicators_list.append(indicators_temp)

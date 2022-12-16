@@ -22,6 +22,10 @@ def upload_pdfs(request):
         files = request.FILES.getlist('files')
         if not files:
             return retJson(code=0, msg="请上传pdf文件")
+        
+        # TODO 检查文件名是否符合 "股票代码_公司名称.pdf"
+        for file in files:
+            file_name = file.name
 
         # 创建以now命名的文件夹用于保存pdf
         now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')

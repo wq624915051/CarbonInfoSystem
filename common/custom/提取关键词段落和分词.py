@@ -39,9 +39,9 @@ if True:
 
 
 # 获取含有特定词语的段落
-def get_paragraphs_with_words(documnet_info, word):
+def get_paragraphs_with_words(document_info, word):
     paragraphs = []
-    for page_info in documnet_info:
+    for page_info in document_info:
         content = page_info["content"]
         if word in content:
             paragraphs.append(content)
@@ -71,12 +71,12 @@ def work():
 
         print(f"{'='*10}\n{file}")
         my_pdf = MyPDF(file_path, media_root)
-        documnet_info = my_pdf.documnet_info
+        document_info = my_pdf.document_info
         
         # 获取含有特定词语的段落
-        paragraphs_carbon = get_paragraphs_with_words(documnet_info, "碳")
-        paragraphs_green = get_paragraphs_with_words(documnet_info, "绿色")
-        paragraphs_envir = get_paragraphs_with_words(documnet_info, "环保")
+        paragraphs_carbon = get_paragraphs_with_words(document_info, "碳")
+        paragraphs_green = get_paragraphs_with_words(document_info, "绿色")
+        paragraphs_envir = get_paragraphs_with_words(document_info, "环保")
         paragraphs_all += paragraphs_carbon + paragraphs_green + paragraphs_envir
 
         # 对段落进行分词，并去重

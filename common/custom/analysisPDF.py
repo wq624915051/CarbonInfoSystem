@@ -8,6 +8,8 @@ from django.conf import settings
 
 from common.custom.myPDF import MyPDF
 from common.custom.excel_processor import write_indicators_to_excel
+from common.custom.keywords_processor import get_paragraphs_with_keywords
+from common.custom.keywords_processor import get_sentences_with_keywords
 
 class AnalysisPDF():
     '''
@@ -31,7 +33,7 @@ class AnalysisPDF():
         self.excel_base_path = excel_base_path
         self.date = datetime.datetime.now().strftime('%Y%m%d')
 
-        self.pdf = MyPDF(self.filepath, media_root=settings.MEDIA_ROOT) # 提取PDF内容存储到self.pdf.documnet_info
+        self.pdf = MyPDF(self.filepath, media_root=settings.MEDIA_ROOT) # 提取PDF内容存储到self.pdf.document_info
 
         self.example_result = {
             "company": "龙湖",
@@ -79,11 +81,19 @@ class AnalysisPDF():
             for indicator_level_2 in indicator_level_1["二级指标"]:
                 for indicator_level_3 in indicator_level_2["三级指标"]:
                     indicator_level_3_name = indicator_level_3["三级指标名称"]
+                    # 用,分割关键词
                     indicator_level_3_keywords = [keyword.strip() for keyword in indicator_level_3["keywords"].split(',')]
-                    self.analysis_with_keywords(indicator_level_3_name, indicator_level_3_keywords)
-                    indicator_level_3["文字内容"] = ""
-                    indicator_level_3["图片数量"] = 0
-                    indicator_level_3["表格数量"] = 0
+                    if self.systemId == 1:
+                        # 筛选含有碳、环保、绿色的相关段落
+                        self.relevant_pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["碳", "绿色", "环保"])
+                        self.relevant_paragraphs = [item[1] for item in self.relevant_pno_paragraphs]
+                        # 进行分析
+                        content, image_count, table_count = self.analysis_with_keywords_system1(indicator_level_3_name, indicator_level_3_keywords)
+                        indicator_level_3["文字内容"] = content
+                        indicator_level_3["图片数量"] = image_count
+                        indicator_level_3["表格数量"] = table_count
+                    elif self.systemId == 2:
+                        self.analysis_with_keywords_system2(indicator_level_3_name, indicator_level_3_keywords)
                     print(indicator_level_3)
 
         self.result["indicators"] = self.indicators
@@ -112,26 +122,38 @@ class AnalysisPDF():
         company_code = company.split('_')[0]
         return company_code
 
-    def analysis_with_keywords(self, name, keywords):
+    def analysis_with_keywords_system1(self, name, keywords):
         '''
-        描述：根据三级指标关键词进行分析
+        描述：根据三级指标名称及关键词进行分析
         参数：
             name: string 指标名称
             keywords: list 关键词列表
         返回值：
-            text: string 提取的文字内容
+            content: string 提取的文字内容
+            image_count: int 图片数量
+            table_count: int 表格数量
         '''
+        if len(keywords) == 0:
+            return "", 0, 0 # 关键词没有就空着
+            
         if name == "高管致辞":
+            # 获取高管致辞段落 及 段落中含有碳、环保、绿色的句子
+            pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["致辞", "高管致辞", "董事长致辞", "董事长"])
+            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "绿色", "环保"])
+            
+            sentences = [item[1] for item in pno_sentences]
+            content = "\n".join(sentences)
+
+            pno_list = [item[0] for item in pno_sentences] # 句子所在的页码
+            pno_list = list(set(pno_list)) # 去重
+            # 获取图片数量和表格数量
+            image_count = sum([page_info["image_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
+            table_count = sum([page_info["table_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
+            return content, image_count, table_count
+
+        elif name == "投入金额占营业总支出的比例":
             pass
-        elif name == "范围一碳排放量（万吨二氧化碳当量）":
-            pass
-        elif name == "范围二碳排放量":
-            pass
-        elif name == "范围三碳排放量":
-            pass
-        elif name == "":
-            pass
-        elif name == "":
+        elif name == "减少的二氧化碳降低百分比":
             pass
         else:
             pass
@@ -139,6 +161,8 @@ class AnalysisPDF():
         
         return text
 
+    def analysis_with_keywords_system2(self, name, keywords):
+        pass
 
 if __name__ == "__main__":
     # 测试

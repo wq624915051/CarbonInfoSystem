@@ -6,8 +6,9 @@ import os
 import json
 import time
 import fitz
+import pdfplumber
 import pytesseract
-import  numpy as np 
+import numpy as np 
 from PIL import Image
 from django.conf import settings
 
@@ -19,7 +20,7 @@ class MyPDF():
         filepath: PDF文件路径
         media_root: 保存图片的路径
     成员变量：
-        documnet_info: list(page_info)
+        document_info: list(page_info)
         page_info: {
             "pno": 页码,
             "type": 页面类型,
@@ -29,18 +30,28 @@ class MyPDF():
     def __init__(self, filepath, media_root) -> None:
         self.filepath = filepath
         self.documnet = fitz.open(filepath)
+        self.pdfplumber = pdfplumber.open(filepath)
         self.media_root = media_root # 保存图片的路径
 
-        self.documnet_info = [] # PDF每一页的信息
+        self.document_info = [] # PDF每一页的信息
         for pno, page in enumerate(self.documnet):
-            page_info = page.get_text("dict")
-            page_info["pno"] = pno
-            page_type = self.judge_page_type(page_info)
+            page_info = page.get_text("dict") # 该页的信息
+            page_info["pno"] = pno # 页码
+            page_type = self.judge_page_type(page_info) # 页面类型
             page_info["type"] = page_type
             if page_type == "text":
-                # 整合文本
+                # 获取页面的文本内容
                 content = self.get_textpage_content(page_info)
                 page_info["content"] = content
+
+                # 通过pdfplumber获取图片
+                pdfplumber_page = self.pdfplumber.pages[pno]
+                images = pdfplumber_page.images # 获取图片
+                page_info["image_count"] = len(images) # 图片数量
+                
+                # 通过pdfplumber获取表格
+                tables = pdfplumber_page.extract_tables() # 获取表格
+                page_info["table_count"] = len(tables) # 表格数量
             elif page_type == "image":
                 img_list = page.get_images()  # 提取该页中的所有img
                 image = img_list[0]  # 只取第一张图片
@@ -52,6 +63,8 @@ class MyPDF():
                 # 获取图片中的文本
                 content =  self.get_image_content(img_save_path) 
                 page_info["content"] = content
+
+                # TODO 获取图片和表格的数量
                 
                 # 方式一：逐个删除图片
                 # self.delete_image(img_save_path)
@@ -59,7 +72,7 @@ class MyPDF():
             # 方式二：批量删除图片
             self.delete_images(os.path.join(self.media_root, 'temp_images'))  
 
-            self.documnet_info.append(page_info)
+            self.document_info.append(page_info)
     
     def judge_page_type(self, page_info: dict):
         '''
@@ -171,10 +184,10 @@ class MyPDF():
         返回值：
             content: pdf文件的文本内容
         '''
-        content_list = [page["content"] for page in self.documnet_info]
+        content_list = [page["content"] for page in self.document_info]
         content = "\n".join(content_list)
         return content
-
+        
 if __name__ =="__main__":
     filepath = "D:\ALL\项目\碳信息披露\测试pdf\\600018-2021-可持续.PDF"
     media_root = "D:\ALL\项目\碳信息披露\CarbonInfoSystem\media"
