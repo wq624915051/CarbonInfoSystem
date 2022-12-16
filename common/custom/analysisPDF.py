@@ -71,7 +71,7 @@ class AnalysisPDF():
         self.result["company_code"] = self.company_code
 
         # Execl文件保存路径
-        self.execl_filename = f"{self.company_code}_{self.company_name}_{self.date}.xlsx"
+        self.execl_filename = f"{self.company_code}_{self.company_name}_{self.date}.xls"
         self.execl_filepath = os.path.join(self.excel_base_path, self.execl_filename)
 
         # 每个指标进行分析, 结果保存到 self.indicators 中
