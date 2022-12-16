@@ -164,9 +164,3 @@ def write_indicators_to_excel(filepath, data):
 #         },
 #     ]
 #     write_indicators_to_excel(data=example_data,filepath='test.xls')
-
-
-
-
-
-    
