@@ -15,7 +15,7 @@ docker run -dp 10086:10086 -v PATH2FILE:/code carbon_info_system
 ## TODO
 - [ ] PDF分析
 - [ ] 异常处理
-- [ ] 配置Tesseract OCR
+- [x] [配置Tesseract OCR](https://zhuanlan.zhihu.com/p/420259031)
 - [ ] DEBUG = True; ALLOWED_HOSTS = []
 
-[自动同步你的 Github 仓库到 Gitee 仓库](https://gyx8899.gitbook.io/blog/share/syncgithubtogitee)
+- [ ] [自动同步Github仓库到Gitee仓库](https://gyx8899.gitbook.io/blog/share/syncgithubtogitee)
