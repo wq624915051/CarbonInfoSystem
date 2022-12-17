@@ -16,7 +16,7 @@ from common.custom.ocr import MyOCR
 
 class MyPDF():
     '''
-    描述：MyPDF类，用于提取PDF文件中的文本
+    描述：MyPDF类，用于提取PDF文件中的文本、图像、表格
     参数：
         filepath: PDF文件路径
         media_root: 保存图片的路径
@@ -63,10 +63,10 @@ class MyPDF():
                 self.save_image_page(image, img_save_path)  
 
                 # 利用Tesseract获取图片中的文本
-                # content = self.get_image_content_by_Tesseract(img_save_path) 
+                # page_info["content"] = self.get_image_content_by_Tesseract(img_save_path) 
 
                 # 利用paddleocr进行版面分析和文字提取
-                structure = self.pdf_ocr.get_structure(img_save_path)
+                structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
                 page_info["content"] = self.pdf_ocr.get_content(structure) # 页面内容
                 page_info["image_count"] = self.pdf_ocr.get_image_count(structure) # 图片数量
                 page_info["table_count"] = self.pdf_ocr.get_table_count(structure) # 表格数量
