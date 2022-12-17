@@ -97,8 +97,8 @@ def read_indicators_from_excel(filepath):
                     thrid_list.append(thrid_dict)
                 if (table.cell_value(row, col-3) != '' and row != 1) or row == lines-1:
                     first_dic = {}
-                    first_dic['一级指标名称'] = first1_name
-                    first_dic['具体指标'] = first2_name
+                    first_dic['一级指标'] = first1_name
+                    first_dic['需求目的'] = first2_name
                     first_dic['二级指标'] = sec_list
                     first1_name = table.cell_value(row, col-3)
                     first2_name = table.cell_value(row, col-2)
