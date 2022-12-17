@@ -108,7 +108,7 @@ def get_indicators(request):
             res = read_indicators_from_excel(filepath)
             return retJson(code=1, msg="success", data={"indicators": res})
         elif system == 2:
-            filepath = os.path.join(settings.BASE_DIR, "data", "企业碳中和发展指标体系.xls") # TODO
+            filepath = os.path.join(settings.BASE_DIR, "data", "企业碳中和发展评价指标体系.xls") # TODO
             res = read_indicators_from_excel(filepath)
             return retJson(code=1, msg="success", data={"indicators": res})
         else:
