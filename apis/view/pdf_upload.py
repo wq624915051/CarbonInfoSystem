@@ -26,7 +26,7 @@ def upload_pdfs(request):
         # 检查文件名是否符合 "股票代码_公司名称_年份.pdf"
         for file in files:
             file_name = file.name
-            if not file_name.endswith('.pdf'):
+            if not file_name.lower().endswith('.pdf'):
                 return retJson(code=0, msg="文件类型错误, 只能上传pdf文件")
             if len(file_name.split('_')) != 3:
                 return retJson(code=0, msg="文件命名格式错误, 请按照'股票代码_公司名称_年份.pdf'命名")
