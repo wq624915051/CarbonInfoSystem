@@ -3,6 +3,7 @@ import json
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from common.base.base_respons import retJson
+from common.custom.logger import Log, my_logger
 from common.custom.excel_processor import read_indicators_from_excel
 from common.custom.keywords_processor import split_keywords_with_comma
 
@@ -66,6 +67,7 @@ def add_indicators(request):
 
             return retJson(code=1, msg="success", data={"indicator": indicator})
         except Exception as e:
+            my_logger.error(e)
             return retJson(code=0, msg=str(e))
 
 @csrf_exempt

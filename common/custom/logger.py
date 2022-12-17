@@ -41,10 +41,11 @@ class Log:
     def critical(msg):
         Log.logger.critical(Fore.RED + f"{Log.now}\t[CRITICAL]: {str(msg)}" + Style.RESET_ALL)
 
+my_logger = Log()
+
 if __name__ == '__main__':
-    logger = Log()
-    logger.debug("debug")
-    logger.info("info")
-    logger.warning("warning")
-    logger.error("error")
-    logger.critical("critical")
+    my_logger.debug("你")
+    my_logger.info("好")
+    my_logger.warning("世")
+    my_logger.error("界")
+    my_logger.critical("！")
