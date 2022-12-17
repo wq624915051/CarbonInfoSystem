@@ -94,7 +94,6 @@ class AnalysisPDF():
                         indicator_level_3["表格数量"] = table_count
                     elif self.systemId == 2:
                         self.analysis_with_keywords_system2(indicator_level_3_name, indicator_level_3_keywords)
-                    print(indicator_level_3)
 
         self.result["indicators"] = self.indicators
         self.result["filepath"] = self.execl_filepath
