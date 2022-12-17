@@ -12,6 +12,7 @@ import numpy as np
 from PIL import Image
 from django.conf import settings
 
+from common.custom.ocr import MyOCR
 
 class MyPDF():
     '''
@@ -32,6 +33,7 @@ class MyPDF():
         self.documnet = fitz.open(filepath)
         self.pdfplumber = pdfplumber.open(filepath)
         self.media_root = media_root # 保存图片的路径
+        self.pdf_ocr = MyOCR()
 
         self.document_info = [] # PDF每一页的信息
         for pno, page in enumerate(self.documnet):
@@ -60,12 +62,15 @@ class MyPDF():
                 img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}.png")
                 self.save_image_page(image, img_save_path)  
 
-                # 获取图片中的文本
-                content =  self.get_image_content(img_save_path) 
-                page_info["content"] = content
+                # 利用Tesseract获取图片中的文本
+                # content = self.get_image_content_by_Tesseract(img_save_path) 
 
-                # TODO 获取图片和表格的数量
-                
+                # 利用paddleocr进行版面分析和文字提取
+                structure = self.pdf_ocr.get_structure(img_save_path)
+                page_info["content"] = self.pdf_ocr.get_content(structure) # 页面内容
+                page_info["image_count"] = self.pdf_ocr.get_image_count(structure) # 图片数量
+                page_info["table_count"] = self.pdf_ocr.get_table_count(structure) # 表格数量
+
                 # 方式一：逐个删除图片
                 # self.delete_image(img_save_path)
             
@@ -159,15 +164,15 @@ class MyPDF():
             else:
                 os.remove(os.path.join(del_path, file))
 
-    def get_image_content(self, img_save_path):
+    def get_image_content_by_Tesseract(self, img_path):
         '''
         描述：使用 Tesseract 识别, 提取文字
         参数：
-            img_save_path: 图片路径
+            img_path: 图片路径
         返回值：
             content: 识别出的文字
         '''
-        img = Image.open(img_save_path)
+        img = Image.open(img_path)
         img_gray = img.convert('L')  # 灰度化
         # 二值化 (二值化后效果不好, 仍使用灰度图 img_gray)
         avg_gray = np.average(np.array(img_gray)) # 取所有像素点灰度的平均值

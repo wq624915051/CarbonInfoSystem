@@ -13,7 +13,7 @@ docker run -dp PORT:10086 -v PATH2FILE:/code carbon_info_system
 ```
 
 ## TODO
-- [ ] PDF分析
+- [ ] PDF分析 - [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)
 - [ ] 异常处理
 - [x] [配置Tesseract OCR](https://zhuanlan.zhihu.com/p/420259031)
 - [ ] DEBUG = True; ALLOWED_HOSTS = []
