@@ -23,9 +23,13 @@ def upload_pdfs(request):
         if not files:
             return retJson(code=0, msg="请上传pdf文件")
         
-        # TODO 检查文件名是否符合 "股票代码_公司名称.pdf"
+        # 检查文件名是否符合 "股票代码_公司名称_年份.pdf"
         for file in files:
             file_name = file.name
+            if not file_name.endswith('.pdf'):
+                return retJson(code=0, msg="文件类型错误, 只能上传pdf文件")
+            if len(file_name.split('_')) != 3:
+                return retJson(code=0, msg="文件命名格式错误, 请按照'股票代码_公司名称_年份.pdf'命名")
 
         # 创建以now命名的文件夹用于保存pdf
         now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
