@@ -19,30 +19,33 @@ def upload_pdfs(request):
     if request.method == 'GET':
         return retJson(code=0, msg="GET请求")
     elif request.method == 'POST':
-        files = request.FILES.getlist('files')
-        if not files:
-            return retJson(code=0, msg="请上传pdf文件")
-        
-        # 检查文件名是否符合 "股票代码_公司名称_年份.pdf"
-        for file in files:
-            file_name = file.name
-            if not file_name.lower().endswith('.pdf'):
-                return retJson(code=0, msg="文件类型错误, 只能上传pdf文件")
-            if len(file_name.split('_')) != 3:
-                return retJson(code=0, msg="文件命名格式错误, 请按照'股票代码_公司名称_年份.pdf'命名")
+        try:
+            files = request.FILES.getlist('files')
+            if not files:
+                return retJson(code=0, msg="请上传pdf文件")
+            
+            # 检查文件名是否符合 "股票代码_公司名称_年份.pdf"
+            for file in files:
+                file_name = file.name
+                if not file_name.lower().endswith('.pdf'):
+                    return retJson(code=0, msg="文件类型错误, 只能上传pdf文件")
+                if len(file_name.split('_')) != 3:
+                    return retJson(code=0, msg="文件命名格式错误, 请按照'股票代码_公司名称_年份.pdf'命名")
 
-        # 创建以now命名的文件夹用于保存pdf
-        now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        pdf_dir = os.path.join(settings.MEDIA_ROOT, "uploads", now)
-        if not os.path.exists(pdf_dir):
-            os.makedirs(pdf_dir)
+            # 创建以now命名的文件夹用于保存pdf
+            now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+            pdf_dir = os.path.join(settings.MEDIA_ROOT, "uploads", now)
+            if not os.path.exists(pdf_dir):
+                os.makedirs(pdf_dir)
 
-        filepaths = []
-        for file in files:
-            file_name = file.name
-            file_path = os.path.join(pdf_dir, file_name)
-            filepaths.append(file_path)
-            with open(file_path, 'wb') as f:
-                for chunk in file.chunks():
-                    f.write(chunk)
-        return retJson(code=1, msg="success", data={"filepaths": filepaths})
+            filepaths = []
+            for file in files:
+                file_name = file.name
+                file_path = os.path.join(pdf_dir, file_name)
+                filepaths.append(file_path)
+                with open(file_path, 'wb') as f:
+                    for chunk in file.chunks():
+                        f.write(chunk)
+            return retJson(code=1, msg="success", data={"filepaths": filepaths})
+        except Exception as e:
+            return retJson(code=0, msg=str(e))
