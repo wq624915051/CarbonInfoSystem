@@ -3,6 +3,7 @@ import json
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from common.base.base_respons import retJson
+from common.custom.logger import Log, my_logger
 from common.custom.excel_processor import read_indicators_from_excel
 from common.custom.keywords_processor import split_keywords_with_comma
 
@@ -37,34 +38,37 @@ def add_indicators(request):
     if request.method == 'GET':
         return retJson(code=0, msg="GET请求")
     elif request.method == 'POST':
-        name = request.POST.get('name')
-        type = request.POST.get('type')
+        try: 
+            name = request.POST.get('name')
+            type = request.POST.get('type')
 
-        if type == 'file':
-            file = request.FILES.get('file')
-            if not file:
-                return retJson(code=0, msg="请上传关键词文件")
-            keywords = file.read().decode('utf-8')
+            if type == 'file':
+                file = request.FILES.get('file')
+                if not file:
+                    return retJson(code=0, msg="请上传关键词文件")
+                keywords = file.read().decode('utf-8')
 
-        elif type == 'keywords':
-            keywords = request.POST.get('keywords')
-            if not keywords:
-                return retJson(code=0, msg="请填写关键词")
-        
-        else:
-            return retJson(code=0, msg="关键词类型需为 'file' | 'keywords'")
+            elif type == 'keywords':
+                keywords = request.POST.get('keywords')
+                if not keywords:
+                    return retJson(code=0, msg="请填写关键词")
+            
+            else:
+                return retJson(code=0, msg="关键词类型需为 'file' | 'keywords'")
 
-        # 处理keywords
-        keywords = split_keywords_with_comma(keywords)
+            # 处理keywords
+            keywords = split_keywords_with_comma(keywords)
 
-        indicator["一级指标"] = name
-        indicator["需求目的"] = name
-        indicator["二级指标"][0]["二级指标名称"] = name
-        indicator["二级指标"][0]["三级指标"][0]["三级指标名称"] = name
-        indicator["二级指标"][0]["三级指标"][0]["keywords"] = keywords
+            indicator["一级指标"] = name
+            indicator["需求目的"] = name
+            indicator["二级指标"][0]["二级指标名称"] = name
+            indicator["二级指标"][0]["三级指标"][0]["三级指标名称"] = name
+            indicator["二级指标"][0]["三级指标"][0]["keywords"] = keywords
 
-        return retJson(code=1, msg="success", data={"indicator": indicator})
-
+            return retJson(code=1, msg="success", data={"indicator": indicator})
+        except Exception as e:
+            my_logger.error(e)
+            return retJson(code=0, msg=str(e))
 
 @csrf_exempt
 def get_indicators(request):
@@ -102,16 +106,19 @@ def get_indicators(request):
     ]
 
     if request.method == 'GET':
-        system = int(request.GET.get('system'))
-        if system == 1:
-            filepath = os.path.join(settings.BASE_DIR, "data", "碳信息披露质量关键词.xls")
-            res = read_indicators_from_excel(filepath)
-            return retJson(code=1, msg="success", data={"indicators": res})
-        elif system == 2:
-            filepath = os.path.join(settings.BASE_DIR, "data", "企业碳中和发展评价指标体系.xls") # TODO
-            res = read_indicators_from_excel(filepath)
-            return retJson(code=1, msg="success", data={"indicators": res})
-        else:
-            return retJson(code=0, msg="参数只能为1或2")
+        try:
+            system = int(request.GET.get('system'))
+            if system == 1:
+                filepath = os.path.join(settings.BASE_DIR, "data", "碳信息披露质量关键词.xls")
+                res = read_indicators_from_excel(filepath)
+                return retJson(code=1, msg="success", data={"indicators": res})
+            elif system == 2:
+                filepath = os.path.join(settings.BASE_DIR, "data", "企业碳中和发展评价指标体系.xls") # TODO
+                res = read_indicators_from_excel(filepath)
+                return retJson(code=1, msg="success", data={"indicators": res})
+            else:
+                return retJson(code=0, msg="参数只能为1或2")
+        except Exception as e:
+            return retJson(code=0, msg=str(e))
     elif request.method == 'POST':
         return retJson(code=0, msg="POST请求")

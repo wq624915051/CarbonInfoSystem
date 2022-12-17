@@ -4,6 +4,7 @@ from paddleocr import PPStructure
 from paddleocr import draw_structure_result
 from paddleocr import save_structure_res
 
+from common.custom.utils import cv2imread
 class MyOCR():
     """
     描述: 利用paddleocr进行版面分析和文字提取
@@ -19,7 +20,7 @@ class MyOCR():
         返回值：
             structure: 版面分析结果 List[Dict]
         """
-        img = cv2.imread(img_path)
+        img = cv2imread(img_path)
         structure = self.pdf_engine(img)
         return structure
     
