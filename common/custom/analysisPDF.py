@@ -137,29 +137,29 @@ class AnalysisPDF():
             return "", 0, 0 # 关键词没有就空着
             
         if name == "高管致辞":
-            # 获取高管致辞段落 及 段落中含有碳、环保、绿色的句子
+            # 获取高管致辞段落
             pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["致辞", "高管致辞", "董事长致辞", "董事长"])
+            # 段落中含有碳、环保、绿色的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "绿色", "环保"])
-            
-            sentences = [item[1] for item in pno_sentences]
-            content = "\n".join(sentences)
-
-            pno_list = [item[0] for item in pno_sentences] # 句子所在的页码
-            pno_list = list(set(pno_list)) # 去重
-            # 获取图片数量和表格数量
-            image_count = sum([page_info["image_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
-            table_count = sum([page_info["table_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
-            return content, image_count, table_count
-
-        elif name == "投入金额占营业总支出的比例":
-            pass
         elif name == "减少的二氧化碳降低百分比":
-            pass
+            # 段落中含有 关键词 的句子
+            keywords.append("二氧化碳排放下降")
+            keywords.append("二氧化碳排放量下降")
+            keywords.append("二氧化碳排放量减少")
+            pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords)
         else:
-            pass
-        text = ""
+            # 段落中含有 关键词 的句子
+            pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords)
         
-        return text
+        sentences = [item[1] for item in pno_sentences] # 句子列表
+        content = "\n".join(sentences) # 拼接成字符串
+
+        pno_list = [item[0] for item in pno_sentences] # 句子所在的页码
+        pno_list = list(set(pno_list)) # 页码去重
+        # 获取图片数量和表格数量
+        image_count = sum([page_info["image_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
+        table_count = sum([page_info["table_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
+        return content, image_count, table_count
 
     def analysis_with_keywords_system2(self, name, keywords):
         pass
