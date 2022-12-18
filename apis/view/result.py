@@ -18,6 +18,7 @@ def calculate(request):
     参数：
         indicators: list[dict] 指标列表
         filepaths: list[string] pdf文件路径列表
+        system: int 系统ID
         w1: int 贡献度1
         w2: int 贡献度2
         w3: int 贡献度3
