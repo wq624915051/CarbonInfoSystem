@@ -42,7 +42,7 @@ def read_ESG_from_excel(filepath):
         data[esg_table.cell_value(row,0)] = temp_dict
     return data
 
-def read_terms_from_excel(filepath,type):
+def read_terms_from_excel(filepath, type):
     '''
     描述: 从excel读取词库
     参数:
