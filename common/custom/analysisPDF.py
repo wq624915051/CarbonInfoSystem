@@ -7,6 +7,7 @@ import re
 import datetime
 from django.conf import settings
 
+from common.base.base_respons import retJson
 from common.custom.myPDF import MyPDF
 from common.custom.excel_processor import write_indicators_to_excel
 from common.custom.excel_processor import read_ESG_from_excel
@@ -20,6 +21,7 @@ class AnalysisPDF():
     参数：
         filepath: string pdf文件路径
         indicators: list[dict] 指标列表
+        systemId: int 系统ID
         w1: int 贡献度1
         w2: int 贡献度2
         w3: int 贡献度3
@@ -79,16 +81,14 @@ class AnalysisPDF():
         # 初始化结果
         self.result = {}
 
-        # 获取公司名字
-        self.company_name = self.get_company_name()
-        self.result["company"] = self.company_name
-
-        # 获取公司股票代码
-        self.company_code = self.get_company_code()
+        # 获取公司股票代码、名字、年份
+        self.company_code, self.company_name, self.year = self.get_company_code_name_year()
         self.result["company_code"] = self.company_code
+        self.result["company"] = self.company_name
+        self.result["year"] = self.year
 
         # Execl文件保存路径
-        self.execl_filename = f"{self.company_code}_{self.company_name}_{self.date}.xls"
+        self.execl_filename = f"{self.company_code}_{self.company_name}_{self.year}_{self.date}.xls"
         self.execl_filepath = os.path.join(self.excel_base_path, self.execl_filename)
 
         # 每个指标进行分析, 结果保存到 self.indicators 中
@@ -101,7 +101,6 @@ class AnalysisPDF():
                     if self.systemId == 1:
                         # 筛选含有碳、环保、绿色的相关段落
                         self.relevant_pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["碳", "绿色", "环保"])
-                        self.relevant_paragraphs = [item[1] for item in self.relevant_pno_paragraphs]
                         # 根据关键词进行分析
                         content, image_count, table_count, sentences_count = self.analysis_with_keywords_system1(indicator_level_3_name, indicator_level_3_keywords)
                         indicator_level_3["文字内容"] = content
@@ -114,37 +113,38 @@ class AnalysisPDF():
                         indicator_level_3["文字信息披露质量"] = self.text_quality(indicator_level_3)
                         indicator_level_3["最终得分"] = self.get_final_score(indicator_level_3)
                     elif self.systemId == 2:
-                        self.analysis_with_keywords_system2(indicator_level_3_name, indicator_level_3_keywords)
+                        # 三级指标计分方式
+                        indicator_level_3_method = indicator_level_3["计分方法分类（关键词+数字+字数）"].strip()
+                        # 筛选含有绿色 碳 温室气体 环保 能源的相关段落
+                        self.relevant_pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["绿色", "碳", "温室气体", "环保", "能源"])
+                        # 根据关键词进行分析
+                        content, score = self.analysis_with_keywords_system2(
+                            indicator_level_3_name, indicator_level_3_keywords, indicator_level_3_method)
+                        indicator_level_3["文字内容"] = content
+                        indicator_level_3["最终得分"] = score
 
         self.result["indicators"] = self.indicators
         self.result["filepath"] = self.execl_filepath
-        # write_indicators_to_excel(self.execl_filepath, self.result["indicators"])
+        
+        # write_indicators_to_excel(self.execl_filepath, self.result["indicators"]) # TODO 
 
-    def get_company_name(self):
+    def get_company_code_name_year(self):
         '''
-        描述：获取公司名字
+        描述：获取公司股票代码、公司名字、年份
         返回值：
-            company_name: string 公司名字
+            code: string 公司股票代码
+            name: string 公司名字
+            year: string 年份
         '''
-        company = os.path.basename(self.filepath)
-        company = company.split('.')[0]  # "股票代码_公司名称.pdf"
-        company_name = company.split('_')[1]
-        return company_name
-
-    def get_company_code(self):
-        '''
-        描述：获取公司股票代码
-        返回值：
-            company: string 公司股票代码
-        '''
-        company = os.path.basename(self.filepath)
-        company = company.split('.')[0]  # "股票代码_公司名称.pdf"
-        company_code = company.split('_')[0]
-        return company_code
+        filename = os.path.basename(self.filepath).split('.')[0]  # "股票代码_公司名称_年份.pdf"
+        code = filename.split('_')[0]
+        name = filename.split('_')[1]
+        year = filename.split('_')[2]
+        return code, name, year
 
     def analysis_with_keywords_system1(self, name, keywords):
         '''
-        描述：根据三级指标名称及关键词进行分析
+        描述：根据三级指标名称及关键词对碳信息披露进行分析
         参数：
             name: string 指标名称
             keywords: list 关键词列表
@@ -183,8 +183,128 @@ class AnalysisPDF():
         sentences_count = len(sentences)
         return content, image_count, table_count, sentences_count
 
-    def analysis_with_keywords_system2(self, name, keywords):
-        pass
+    def analysis_with_keywords_system2(self, name, keywords, method):
+        '''
+        描述：根据三级指标名称及关键词对碳中和发展进行分析
+        参数：
+            name: string 指标名称
+            keywords: list 关键词列表
+        返回值：
+            content: string 提取的文字内容
+            score: int 分数
+        '''
+        # 需要忽略的三级指标名称列表
+        ignore_name_list = [
+            "企业披露的碳排放量涵盖了组织边界和运营边界以内的总排放量",
+            "充分披露了企业碳排放相关信息（即完整披露确碳、减碳、抵碳的核心题项）",
+            "使用数字进行信息披露的程度（披露了范围一、范围二、范围三的碳排放量或者能源消耗量（电、煤、石油天然气等）的具体值）",
+            "碳信息披露时间（随年报披露、随披露社会责任报告或可持续发展报告、单独披露碳中和报告或路线图）",
+        ]
+        
+        if len(keywords) == 0:
+            return "", ""
+        if name in ignore_name_list:
+            return "", ""
+        if name == "高管有关双碳目标或碳减排的声明与承诺":
+            # 获取高管致辞段落
+            pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["致辞", "高管致辞", "董事长致辞", "管理层致辞"])
+            # 段落中含有碳、气候、节能、能源的句子
+            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候", "节能", "能源"])
+            sentences = [item[1] for item in pno_sentences] # 句子列表
+            content = "\n".join(sentences) # 拼接成字符串
+            score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
+            return content, score
+
+        elif name == "是否将此类气候变化流程纳入企业的整体风险管理系统或流程":
+            # 获取“风险”段落
+            pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["风险"])
+            # 段落中含有管理机制、制度、流程、整体、气候变化、能源的句子
+            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["管理机制", "制度", "流程", "整体", "气候变化", "能源"])
+            sentences = [item[1] for item in pno_sentences] # 句子列表
+            content = "\n".join(sentences) # 拼接成字符串
+            score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
+            return content, score
+
+        elif name == "利益相关者沟通中识别了与双碳目标或低碳有关的利益相关者及其期望":
+            # 获取“利益相关者”段落
+            pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["利益相关者"])
+            # 段落中含有碳、气候变化、节能、能源的句子
+            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候变化", "节能", "能源"])
+            sentences = [item[1] for item in pno_sentences] # 句子列表
+            content = "\n".join(sentences) # 拼接成字符串
+            score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
+            return content, score
+
+        elif name == "采取一致的方法学对长期的碳排放情况进行比较":
+            # 获取“碳排放”段落
+            pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["碳排放"])
+            # 获取去年和前年的年份
+            last_year, last_last_year = str(int(self.year) - 1), str(int(self.year) - 2)
+            # 段落中含有去年和前年的句子
+            pno_sentences = get_sentences_with_keywords(pno_paragraphs, [last_year, last_last_year])
+            sentences = [item[1] for item in pno_sentences] # 句子列表
+            content = "\n".join(sentences) # 拼接成字符串
+            score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
+            return content, score
+
+        elif name == "企业投资成本":
+            if self.company_code in self.ESG_data.keys():
+                if self.year in self.ESG_data[self.company_code]["年份记录"]:
+                    score = self.ESG_data[self.company_code][str(self.year)]["股权融资优势"]
+                    return "", score
+                else:
+                    raise Exception(f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此年的股权融资优势数据")
+            else:
+                raise Exception(f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此企业的股权融资优势数据")
+
+        elif name == "wind ESG评级":
+            if self.company_code in self.ESG_data.keys():
+                if self.year in self.ESG_data[self.company_code]["年份记录"]:
+                    score = self.ESG_data[self.company_code][str(self.year)]["ESG评级"]
+                    return "", score
+                else:
+                    raise Exception(f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此年的Wind ESG评级数据")
+            else:
+                raise Exception(f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此企业的Wind ESG评级数据")
+
+        else:
+            # 段落中含有 关键词 的句子
+            pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords)
+            sentences = [item[1] for item in pno_sentences] # 句子列表
+            content = "\n".join(sentences) # 拼接成字符串
+            if method == "关键词":
+                if name == "确定碳排放核算责任的运营边界（依据范围一、范围二、范围三界定）":
+                    ''' 涵盖了几个范围得几分 '''
+                    range_1 = get_sentences_with_keywords(self.relevant_pno_paragraphs, ["范围一", "范畴一"])
+                    range_2 = get_sentences_with_keywords(self.relevant_pno_paragraphs, ["范围二", "范畴二"])
+                    range_3 = get_sentences_with_keywords(self.relevant_pno_paragraphs, ["范围三", "范畴三"])
+                    score = sum([bool(lst) for lst in (range_1, range_2, range_3)])
+                    return content, score
+
+                elif name == "通过温室气体管理体系（ISO14064）认证、产品碳足迹认证（ISO 14067）、能源管理体系（ISO50001）认证、环境管理体系（ISO14001）认证的情况":
+                    # 有多少句子则得分多少分，最多4分
+                    score = len(pno_sentences) if len(pno_sentences)<=4 else 4 
+                    return content, score
+
+                else:
+                    score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
+                    return content, score
+
+            elif method == "关键词+数字":
+                return content, ""
+
+            elif method == "关键词+数字+字数":
+                ''' 定量描述，赋值为3；详细定性，赋值为2；简单定性，赋值为1；无描述，赋值为0 '''
+                digital = re.findall(r"\d+\.?\d*", content)
+                if digital:
+                    score = 3
+                elif len(pno_sentences) and len(content) > 100:
+                    score = 2
+                elif len(pno_sentences) and len(content) > 0:
+                    score = 1
+                else:
+                    score = 0
+                return content, score
 
     def get_common_words_count(self, content):
         '''
