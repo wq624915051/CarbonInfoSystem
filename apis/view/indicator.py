@@ -1,7 +1,9 @@
 import os
 import json
+import logging
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
+
 from common.base.base_respons import retJson
 from common.custom.logger import Log, my_logger
 from common.custom.excel_processor import read_indicators_from_excel
@@ -67,7 +69,7 @@ def add_indicators(request):
 
             return retJson(code=1, msg="success", data={"indicator": indicator})
         except Exception as e:
-            my_logger.error(e)
+            my_logger.error(f"{str(logging.exception(e))}")
             return retJson(code=0, msg=str(e))
 
 @csrf_exempt
@@ -119,6 +121,7 @@ def get_indicators(request):
             else:
                 return retJson(code=0, msg="参数只能为1或2")
         except Exception as e:
+            my_logger.error(f"{str(logging.exception(e))}")
             return retJson(code=0, msg=str(e))
     elif request.method == 'POST':
         return retJson(code=0, msg="POST请求")

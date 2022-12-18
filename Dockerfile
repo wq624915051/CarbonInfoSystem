@@ -25,7 +25,9 @@ RUN pip install pip -U -i https://mirrors.aliyun.com/pypi/simple/
 # 安装tesseract-ocr
 RUN apt-get update
 # RUN apt-get upgrade
-RUN apt install tesseract-ocr -y
+RUN apt-get install tesseract-ocr -y
+# 安装相关依赖
+RUN apt install libgl1-mesa-glx -y
 # 安装tesseract-ocr中文语言包
 ADD ./data/chi_sim.traineddata /usr/share/tesseract-ocr/4.00/tessdata/chi_sim.traineddata
 

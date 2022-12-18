@@ -1,10 +1,11 @@
 import os
+import logging
 import datetime
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 
 from common.base.base_respons import retJson
-
+from common.custom.logger import my_logger
 
 @csrf_exempt
 def upload_pdfs(request):
@@ -48,4 +49,5 @@ def upload_pdfs(request):
                         f.write(chunk)
             return retJson(code=1, msg="success", data={"filepaths": filepaths})
         except Exception as e:
+            my_logger.error(f"{str(logging.exception(e))}")
             return retJson(code=0, msg=str(e))

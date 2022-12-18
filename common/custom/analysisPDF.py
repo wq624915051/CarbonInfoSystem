@@ -3,11 +3,14 @@ AnalysisPDF类
 对每个PDF进行分析
 '''
 import os
+import re
 import datetime
 from django.conf import settings
 
 from common.custom.myPDF import MyPDF
 from common.custom.excel_processor import write_indicators_to_excel
+from common.custom.excel_processor import read_ESG_from_excel
+from common.custom.excel_processor import read_terms_from_excel
 from common.custom.keywords_processor import get_paragraphs_with_keywords
 from common.custom.keywords_processor import get_sentences_with_keywords
 
@@ -34,6 +37,18 @@ class AnalysisPDF():
         self.date = datetime.datetime.now().strftime('%Y%m%d')
 
         self.pdf = MyPDF(self.filepath, media_root=settings.MEDIA_ROOT) # 提取PDF内容存储到self.pdf.document_info
+
+        # 读取ESG数据
+        filepath_ESG_data = os.path.join(settings.BASE_DIR, "data", "数据-股权融资优势和ESG评级.xls")
+        self.ESG_data = read_ESG_from_excel(filepath_ESG_data)
+
+        # 读取碳中和专业词
+        filepath_professional_words = os.path.join(settings.BASE_DIR, "data", "所需表.xls")
+        self.professional_words = read_terms_from_excel(filepath_professional_words, type=0)
+
+        # 读取常用词汇
+        filepath_common_words = os.path.join(settings.BASE_DIR, "data", "所需表.xls")
+        self.common_words = read_terms_from_excel(filepath_common_words, type=1)
 
         self.example_result = {
             "company": "龙湖",
@@ -87,11 +102,17 @@ class AnalysisPDF():
                         # 筛选含有碳、环保、绿色的相关段落
                         self.relevant_pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["碳", "绿色", "环保"])
                         self.relevant_paragraphs = [item[1] for item in self.relevant_pno_paragraphs]
-                        # 进行分析
-                        content, image_count, table_count = self.analysis_with_keywords_system1(indicator_level_3_name, indicator_level_3_keywords)
+                        # 根据关键词进行分析
+                        content, image_count, table_count, sentences_count = self.analysis_with_keywords_system1(indicator_level_3_name, indicator_level_3_keywords)
                         indicator_level_3["文字内容"] = content
                         indicator_level_3["图片数量"] = image_count
                         indicator_level_3["表格数量"] = table_count
+                        indicator_level_3["句子数量"] = sentences_count
+                        indicator_level_3["常用词数量"] = self.get_common_words_count(content)
+                        indicator_level_3["专业词数量"] = self.get_professional_words_count(content)
+                        indicator_level_3["数字个数"] = self.get_number_count(content)
+                        indicator_level_3["文字信息披露质量"] = self.text_quality(indicator_level_3)
+                        indicator_level_3["最终得分"] = self.get_final_score(indicator_level_3)
                     elif self.systemId == 2:
                         self.analysis_with_keywords_system2(indicator_level_3_name, indicator_level_3_keywords)
 
@@ -158,10 +179,78 @@ class AnalysisPDF():
         # 获取图片数量和表格数量
         image_count = sum([page_info["image_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
         table_count = sum([page_info["table_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
-        return content, image_count, table_count
+        # 句子数量
+        sentences_count = len(sentences)
+        return content, image_count, table_count, sentences_count
 
     def analysis_with_keywords_system2(self, name, keywords):
         pass
+
+    def get_common_words_count(self, content):
+        '''
+        描述：统计常用词数量
+        参数：
+            content: string 文本内容
+        返回值：
+            count: int 常用词数量
+        '''
+        count_list = [content.count(word) for word in self.common_words]
+        return sum(count_list)
+    
+    def get_professional_words_count(self, content):
+        '''
+        描述：统计专业词数量
+        参数：
+            content: string 文本内容
+        返回值：
+            count: int 专业词数量
+        '''
+        count_list = [content.count(word) for word in self.professional_words]
+        return sum(count_list)
+
+    def get_number_count(self, content):
+        # 匹配所有数字
+        numbers = re.findall(r"\d+\.?\d*", content)
+        # 匹配以ISO开头的数字
+        numbers_ISO = re.findall(r"ISO(\d+\.?\d*)",content)
+        # 匹配所有年份
+        years = re.findall(r"(19\d{2}|20\d{2})", content)
+        # 匹配所有日期 yyyy-./mm-./dd, mm-./dd-./yyyy
+        dates = re.findall("\d{4}[-|.|/]?\d{2}[-|.|/]?\d{2}|\d{2}[-|.|/]?\d{2}[-|.|/]?\d{4}", content)
+
+        # 去除年份和日期后，剩余的数字就是最终结果
+        result = [n for n in numbers if n not in numbers_ISO and all(n not in d for d in dates + years)]
+        return len(result)     
+
+    def text_quality(self, indicator_level_3):
+        '''
+        描述：
+            文字信息披露质量=常用词数量/句子数量+碳中和专业术语数量+数字数量
+        参数：
+            indicator_level_3: dict 指标3级指标
+        返回值：    
+            res: float 文本质量
+        '''
+        if indicator_level_3["句子数量"] != 0:
+            res = indicator_level_3["常用词数量"] / indicator_level_3["句子数量"] 
+        else:
+            res = 0
+        res += indicator_level_3["专业词数量"] + indicator_level_3["数字个数"]
+        return res
+
+    def get_final_score(self, indicator_level_3):
+        """
+        描述：
+            最终得分 = w1 * 文字信息披露质量 + w2 * 图片数量 + w3 * 表格数量
+        参数：
+            indicator_level_3: dict 指标3级指标
+        返回值：
+            score: float 最终得分
+        """
+        score = self.w1 * indicator_level_3["文字信息披露质量"]   
+        score += self.w2 * indicator_level_3["图片数量"]      
+        score += self.w3 * indicator_level_3["表格数量"]      
+        return score
 
 if __name__ == "__main__":
     # 测试
