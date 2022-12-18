@@ -8,6 +8,8 @@ from django.conf import settings
 
 from common.custom.myPDF import MyPDF
 from common.custom.excel_processor import write_indicators_to_excel
+from common.custom.excel_processor import read_ESG_from_excel
+from common.custom.excel_processor import read_terms_from_excel
 from common.custom.keywords_processor import get_paragraphs_with_keywords
 from common.custom.keywords_processor import get_sentences_with_keywords
 
@@ -34,6 +36,18 @@ class AnalysisPDF():
         self.date = datetime.datetime.now().strftime('%Y%m%d')
 
         self.pdf = MyPDF(self.filepath, media_root=settings.MEDIA_ROOT) # 提取PDF内容存储到self.pdf.document_info
+
+        # 读取ESG数据
+        filepath_ESG_data = os.path.join(settings.BASE_DIR, "data", "数据-股权融资优势和ESG评级.xls")
+        self.ESG_data = read_ESG_from_excel(filepath_ESG_data)
+
+        # 读取碳中和专业词
+        filepath_termin_words = os.path.join(settings.BASE_DIR, "data", "所需表.xls")
+        self.termin_words = read_terms_from_excel(filepath_termin_words, type=0)
+
+        # 读取常用词汇
+        filepath_common_words = os.path.join(settings.BASE_DIR, "data", "所需表.xls")
+        self.common_words = read_terms_from_excel(filepath_common_words, type=1)
 
         self.example_result = {
             "company": "龙湖",
@@ -158,6 +172,8 @@ class AnalysisPDF():
         # 获取图片数量和表格数量
         image_count = sum([page_info["image_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
         table_count = sum([page_info["table_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
+        # 句子数量
+        sentences_count = len(sentences)
         return content, image_count, table_count
 
     def analysis_with_keywords_system2(self, name, keywords):
