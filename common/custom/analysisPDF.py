@@ -8,7 +8,7 @@ import datetime
 from django.conf import settings
 
 from common.custom.myPDF import MyPDF
-from common.custom.excel_processor import write_indicators_to_excel
+from common.custom.excel_processor import write_indicators_to_excel1
 from common.custom.excel_processor import read_ESG_from_excel
 from common.custom.excel_processor import read_terms_from_excel
 from common.custom.keywords_processor import get_paragraphs_with_keywords
