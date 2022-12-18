@@ -1,12 +1,14 @@
 import os
 import json
 import datetime
+import logging
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 
 from common.base.base_respons import retJson
 from common.custom.myPDF import MyPDF
 from common.custom.analysisPDF import AnalysisPDF
+from common.custom.logger import my_logger
 
 @csrf_exempt
 def calculate(request):
@@ -91,6 +93,7 @@ def calculate(request):
             # 返回结果
             return retJson(code=1, msg="success", data={"files_indicators": files_indicators})
         except Exception as e:
-            return retJson(code=0, msg="参数错误")
+            my_logger.error(f"{str(logging.exception(e))}")
+            return retJson(code=0, msg=str(e))
     elif request.method == 'GET':
         return retJson(code=0, msg="请求方式错误")
