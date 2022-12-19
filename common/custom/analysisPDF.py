@@ -115,7 +115,10 @@ class AnalysisPDF():
                         indicator_level_3["最终得分"] = self.get_final_score(indicator_level_3)
                     elif self.systemId == 2:
                         # 三级指标计分方式
-                        indicator_level_3_method = indicator_level_3["计分方法分类（关键词+数字+字数）"].strip()
+                        if "计分方法分类（关键词+数字+字数）" in indicator_level_3.keys():
+                            indicator_level_3_method = indicator_level_3["计分方法分类（关键词+数字+字数）"].strip()
+                        else:
+                            indicator_level_3_method = "关键词+数字+字数"
                         # 筛选含有绿色 碳 温室气体 环保 能源的相关段落
                         self.relevant_pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["绿色", "碳", "温室气体", "环保", "能源"])
                         # 根据关键词进行分析
