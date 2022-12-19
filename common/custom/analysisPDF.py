@@ -140,7 +140,7 @@ class AnalysisPDF():
         返回值：
             code: string 公司股票代码
             name: string 公司名字
-            year: string 年份
+            year: int 年份
         '''
         filename = os.path.basename(self.filepath).split('.')[0]  # "股票代码_公司名称_年份.pdf"
         code = filename.split('_')[0]
@@ -245,7 +245,7 @@ class AnalysisPDF():
             # 获取“碳排放”段落
             pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["碳排放"])
             # 获取去年和前年的年份
-            last_year, last_last_year = str(int(self.year) - 1), str(int(self.year) - 2)
+            last_year, last_last_year = str(self.year - 1), str(self.year - 2)
             # 段落中含有去年和前年的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, [last_year, last_last_year])
             sentences = [item[1] for item in pno_sentences] # 句子列表
@@ -256,7 +256,7 @@ class AnalysisPDF():
         elif name == "企业投资成本":
             if self.company_code in self.ESG_data.keys():
                 if self.year in self.ESG_data[self.company_code]["年份记录"]:
-                    score = self.ESG_data[self.company_code][str(self.year)]["股权融资优势"]
+                    score = self.ESG_data[self.company_code][self.year]["股权融资优势"]
                     return "", score
                 else:
                     raise Exception(f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此年的股权融资优势数据")
@@ -266,7 +266,7 @@ class AnalysisPDF():
         elif name == "wind ESG评级":
             if self.company_code in self.ESG_data.keys():
                 if self.year in self.ESG_data[self.company_code]["年份记录"]:
-                    score = self.ESG_data[self.company_code][str(self.year)]["ESG评级"]
+                    score = self.ESG_data[self.company_code][self.year]["ESG评级"]
                     return "", score
                 else:
                     raise Exception(f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此年的Wind ESG评级数据")
