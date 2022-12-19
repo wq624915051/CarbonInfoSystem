@@ -10,6 +10,7 @@ from django.conf import settings
 from common.base.base_respons import retJson
 from common.custom.myPDF import MyPDF
 from common.custom.excel_processor import write_indicators_to_excel1
+from common.custom.excel_processor import write_indicators_to_excel2
 from common.custom.excel_processor import read_ESG_from_excel
 from common.custom.excel_processor import read_terms_from_excel
 from common.custom.keywords_processor import get_paragraphs_with_keywords
@@ -125,8 +126,10 @@ class AnalysisPDF():
 
         self.result["indicators"] = self.indicators
         self.result["filepath"] = self.execl_filepath
-        
-        # write_indicators_to_excel(self.execl_filepath, self.result["indicators"]) # TODO 
+        if self.systemId == 1:
+            write_indicators_to_excel1(self.execl_filepath, self.result["indicators"])
+        elif self.systemId == 2:
+            write_indicators_to_excel2(self.execl_filepath, self.result["indicators"])
 
     def get_company_code_name_year(self):
         '''

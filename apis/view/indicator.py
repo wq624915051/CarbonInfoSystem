@@ -39,7 +39,8 @@ def add_indicators(request):
         ]
     }
     if request.method == 'GET':
-        return retJson(code=0, msg="GET请求")
+        my_logger.error("请使用POST方法")
+        return retJson(code=0, msg="请使用POST方法")
     elif request.method == 'POST':
         try: 
             name = request.POST.get('name')
@@ -48,15 +49,18 @@ def add_indicators(request):
             if type == 'file':
                 file = request.FILES.get('file')
                 if not file:
+                    my_logger.error("请上传关键词文件")
                     return retJson(code=0, msg="请上传关键词文件")
                 keywords = file.read().decode('utf-8')
 
             elif type == 'keywords':
                 keywords = request.POST.get('keywords')
                 if not keywords:
+                    my_logger.error("请填写关键词")
                     return retJson(code=0, msg="请填写关键词")
             
             else:
+                my_logger.error("关键词类型需为 'file' | 'keywords'")
                 return retJson(code=0, msg="关键词类型需为 'file' | 'keywords'")
 
             # 处理keywords
@@ -114,15 +118,18 @@ def get_indicators(request):
             if system == 1:
                 filepath = os.path.join(settings.BASE_DIR, "data", "碳信息披露质量关键词.xls")
                 res = read_indicators_from_excel1(filepath)
+                my_logger.info(f"碳信息披露系统获取指标列表成功")
                 return retJson(code=1, msg="success", data={"indicators": res})
             elif system == 2:
                 filepath = os.path.join(settings.BASE_DIR, "data", "企业碳中和发展评价指标体系.xls") # TODO
                 res = read_indicators_from_excel2(filepath)
+                my_logger.info(f"碳中和发展系统获取指标列表成功")
                 return retJson(code=1, msg="success", data={"indicators": res})
             else:
+                my_logger.error(f"参数只能为1或2")
                 return retJson(code=0, msg="参数只能为1或2")
         except Exception as e:
             my_logger.error(f"{str(logging.exception(e))}")
             return retJson(code=0, msg=str(e))
     elif request.method == 'POST':
-        return retJson(code=0, msg="POST请求")
+        return retJson(code=0, msg="请用GET请求")

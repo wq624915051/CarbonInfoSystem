@@ -63,20 +63,16 @@ def calculate(request):
             w1 = float(received_json_data.get('w1'))
             w2 = float(received_json_data.get('w2'))
             w3 = float(received_json_data.get('w3'))
-            
-            ############
-            # FOR TEST #
-            # return retJson(code=1, msg="success", data={"files_indicators": files_indicators})
-            # FOR TEST #
-            ############
 
             # 判断filepaths中的文件是否存在
             for filepath in filepaths:
                 if not os.path.exists(filepath):
+                    my_logger.error(f"文件 {filepath} 不存在")
                     return retJson(code=0, msg=f"文件 {filepath} 不存在")
             
             # 判断systemId是否为1或2
             if systemId not in [1, 2]:
+                my_logger.error(f"systemId参数错误, 只能为1或2")
                 return retJson(code=0, msg="systemId参数错误, 只能为1或2")
 
             # 在media/downloads/下按时间生成文件夹, 用于存放分析结果Excel
@@ -84,17 +80,21 @@ def calculate(request):
             excel_base_path = os.path.join(settings.MEDIA_ROOT, "downloads", now_time)
             if not os.path.exists(excel_base_path):
                 os.makedirs(excel_base_path)
+                my_logger.info(f"创建文件夹 {excel_base_path} 成功")
 
             # 遍历每个PDF文件，进行分析计算
             files_indicators = []
             for filepath in filepaths:
                 analysis_pdf = AnalysisPDF(filepath, indicators, systemId, w1, w2, w3, excel_base_path)
                 files_indicators.append(analysis_pdf.result)
+                my_logger.info(f"文件 {filepath} 分析计算成功")
 
             # 返回结果
+            my_logger.info(f"计算成功")
             return retJson(code=1, msg="success", data={"files_indicators": files_indicators})
         except Exception as e:
             my_logger.error(f"{str(logging.exception(e))}")
             return retJson(code=0, msg=str(e))
     elif request.method == 'GET':
+        my_logger.error(f"请求方式错误")
         return retJson(code=0, msg="请求方式错误")

@@ -18,19 +18,23 @@ def upload_pdfs(request):
         filepaths: list[string] pdf文件路径列表
     """
     if request.method == 'GET':
-        return retJson(code=0, msg="GET请求")
+        my_logger.error("请使用POST方法")
+        return retJson(code=0, msg="请使用POST方法")
     elif request.method == 'POST':
         try:
             files = request.FILES.getlist('files')
             if not files:
+                my_logger.error("请上传pdf文件")
                 return retJson(code=0, msg="请上传pdf文件")
             
             # 检查文件名是否符合 "股票代码_公司名称_年份.pdf"
             for file in files:
                 file_name = file.name
                 if not file_name.lower().endswith('.pdf'):
+                    my_logger.error("文件类型错误, 只能上传pdf文件")
                     return retJson(code=0, msg="文件类型错误, 只能上传pdf文件")
                 if len(file_name.split('_')) != 3:
+                    my_logger.error("文件命名格式错误, 请按照'股票代码_公司名称_年份.pdf'命名")
                     return retJson(code=0, msg="文件命名格式错误, 请按照'股票代码_公司名称_年份.pdf'命名")
 
             # 创建以now命名的文件夹用于保存pdf
@@ -47,6 +51,7 @@ def upload_pdfs(request):
                 with open(file_path, 'wb') as f:
                     for chunk in file.chunks():
                         f.write(chunk)
+            my_logger.info(f"上传pdf文件成功")
             return retJson(code=1, msg="success", data={"filepaths": filepaths})
         except Exception as e:
             my_logger.error(f"{str(logging.exception(e))}")
