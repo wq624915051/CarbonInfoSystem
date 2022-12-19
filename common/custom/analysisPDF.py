@@ -145,7 +145,7 @@ class AnalysisPDF():
         filename = os.path.basename(self.filepath).split('.')[0]  # "股票代码_公司名称_年份.pdf"
         code = filename.split('_')[0]
         name = filename.split('_')[1]
-        year = filename.split('_')[2]
+        year = int(filename.split('_')[2])
         return code, name, year
 
     def analysis_with_keywords_system1(self, name, keywords):
