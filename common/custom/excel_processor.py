@@ -1,5 +1,6 @@
 import xlrd
 import xlwt
+from common.custom.logger import my_logger
 from common.custom.keywords_processor import split_keywords_with_comma
 
 
@@ -66,6 +67,7 @@ def read_indicators_from_excel1(filepath):
     返回值:
         indicators: 指标列表
     '''
+    # FIXME 空行处理
     excel_data = xlrd.open_workbook(filename=filepath, formatting_info=True)
     table = excel_data.sheets()[0]
     data = []  # 一级指标列表
@@ -111,6 +113,8 @@ def read_indicators_from_excel2(filepath):
     返回值:
         indicators: 指标列表
     '''
+    # FIXME 读取Excel文件时候，二级指标放在了错的一级指标下面
+    # FIXME 空行
     excel_data = xlrd.open_workbook(filename=filepath, formatting_info=True)
     table = excel_data.sheets()[0]
     data = []  # 一级指标列表
@@ -129,6 +133,7 @@ def read_indicators_from_excel2(filepath):
                 thrid_dict['计分方法分类（关键词+数字+字数）'] = table.cell_value(row, col + 2)
                 thrid_dict['终端采分方法'] = table.cell_value(row, col + 3)
                 thrid_dict['最高分'] = table.cell_value(row, col + 4)
+                # TODO 注释
                 if (table.cell_value(row, col-1) != '' and row != 1) or row == lines-1:
                     sec_dict = {}
                     sec_dict['二级指标名称'] = scend_name
@@ -139,6 +144,7 @@ def read_indicators_from_excel2(filepath):
                     thrid_list.append(thrid_dict)
                 else:
                     thrid_list.append(thrid_dict)
+                # TODO 注释
                 if (table.cell_value(row, col-3) != '' and row != 1) or row == lines-1:
                     first_dic = {}
                     first_dic['一级指标'] = first1_name
