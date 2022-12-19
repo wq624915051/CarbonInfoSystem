@@ -6,7 +6,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 from common.base.base_respons import retJson
 from common.custom.logger import Log, my_logger
-from common.custom.excel_processor import read_indicators_from_excel
+from common.custom.excel_processor import read_indicators_from_excel1
+from common.custom.excel_processor import read_indicators_from_excel2
 from common.custom.keywords_processor import split_keywords_with_comma
 
 @csrf_exempt
@@ -112,11 +113,11 @@ def get_indicators(request):
             system = int(request.GET.get('system'))
             if system == 1:
                 filepath = os.path.join(settings.BASE_DIR, "data", "碳信息披露质量关键词.xls")
-                res = read_indicators_from_excel(filepath)
+                res = read_indicators_from_excel1(filepath)
                 return retJson(code=1, msg="success", data={"indicators": res})
             elif system == 2:
                 filepath = os.path.join(settings.BASE_DIR, "data", "企业碳中和发展评价指标体系.xls") # TODO
-                res = read_indicators_from_excel(filepath)
+                res = read_indicators_from_excel2(filepath)
                 return retJson(code=1, msg="success", data={"indicators": res})
             else:
                 return retJson(code=0, msg="参数只能为1或2")
