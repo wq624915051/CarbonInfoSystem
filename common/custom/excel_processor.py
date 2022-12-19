@@ -25,7 +25,7 @@ def read_ESG_from_excel(filepath):
     esg_table = excel_data.sheets()[0]
     lines = len(esg_table.col(0))
     for row in range(3, lines):
-        temp_dict = {}  # 一个公司对应一个dict
+        temp_dict = {} # 一个公司对应一个dict
         temp_dict["年份记录"] = []
         for col in range(0, len(esg_table.row_values(row))):
             if esg_table.cell_value(1, col) == "公司代码":
@@ -34,8 +34,7 @@ def read_ESG_from_excel(filepath):
                 temp_dict["公司简称"] = esg_table.cell_value(row, col)
             elif esg_table.cell_value(1, col) == "年份":
                 if esg_table.cell_value(row, col) != '':
-                    temp_dict["年份记录"].append(
-                        int(esg_table.cell_value(row, col)))
+                    temp_dict["年份记录"].append(int(esg_table.cell_value(row, col)))
                     esg_dict = {
                         "股权融资优势": esg_table.cell_value(row, col+1),
                         "ESG评级": esg_table.cell_value(row, col+2)
@@ -43,7 +42,6 @@ def read_ESG_from_excel(filepath):
                     temp_dict[int(esg_table.cell_value(row, col))] = esg_dict
         data[esg_table.cell_value(row, 0)] = temp_dict
     return data
-
 
 def read_terms_from_excel(filepath, type):
     '''
@@ -60,10 +58,9 @@ def read_terms_from_excel(filepath, type):
 
     return terms
 
-
 def read_indicators_from_excel1(filepath):
     '''
-    描述：从Excel获取指标列表
+    描述：从碳信息披露Excel获取指标列表
     参数：
         filepath: Excel文件路径
     返回值:
@@ -108,7 +105,7 @@ def read_indicators_from_excel1(filepath):
 
 def read_indicators_from_excel2(filepath):
     '''
-    描述：从Excel获取指标列表
+    描述：从碳中和发展Excel获取指标列表
     参数：
         filepath: Excel文件路径
     返回值:
@@ -122,7 +119,6 @@ def read_indicators_from_excel2(filepath):
     first1_name = table.cell_value(1, 0)  # 一级指标名称
     scend_name = table.cell_value(1, 2)  # 二级指标名称
     lines = len(table.col(0))
-    print(lines)
     for row in range(1, lines):
         thrid_dict = {}
         for col in range(0, len(table.row_values(row))):
@@ -154,7 +150,7 @@ def read_indicators_from_excel2(filepath):
 
 def write_indicators_to_excel1(filepath, data):
     '''
-    描述：将指标列表写入Excel
+    描述：将指标列表写入碳信息披露Excel
     参数：
         filepath: Excel文件路径
         data: 指标列表
@@ -256,7 +252,7 @@ def write_indicators_to_excel1(filepath, data):
 
 def write_indicators_to_excel2(filepath, data):
     '''
-    描述：将指标列表写入Excel
+    描述：将指标列表写入碳中和发展Excel
     参数：
         filepath: Excel文件路径
         data: 指标列表
