@@ -307,9 +307,12 @@ def write_indicators_to_excel2(filepath, data):
             for thrid_dict in thrid_list:  # 一个dict对应一个三级指标
                 worksheet.write(tri_begin, 2, thrid_dict['三级指标名称'], style)
                 worksheet.write(tri_begin, 3, thrid_dict['keywords'], style)
-                worksheet.write(tri_begin, 4, thrid_dict['计分方法分类（关键词+数字+字数）'], style)
-                worksheet.write(tri_begin, 5, thrid_dict['终端采分方法'], style)
-                worksheet.write(tri_begin, 6, thrid_dict['最高分'], style)
+                if '计分方法分类（关键词+数字+字数）' in thrid_dict:
+                    worksheet.write(tri_begin, 4, thrid_dict['计分方法分类（关键词+数字+字数）'], style)
+                if '终端采分方法' in thrid_dict:
+                    worksheet.write(tri_begin, 5, thrid_dict['终端采分方法'], style)
+                if '最高分' in thrid_dict:
+                    worksheet.write(tri_begin, 6, thrid_dict['最高分'], style)
                 worksheet.write(tri_begin, 7, thrid_dict['文字内容'], style)
                 worksheet.write(tri_begin, 8, thrid_dict['最终得分'], style)
                 tri_begin += 1
