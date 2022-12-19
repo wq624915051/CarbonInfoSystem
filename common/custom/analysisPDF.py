@@ -89,7 +89,8 @@ class AnalysisPDF():
         self.result["year"] = self.year
 
         # Execl文件保存路径
-        self.execl_filename = f"{self.company_code}_{self.company_name}_{self.year}_{self.date}.xls"
+        self.system_name = "碳信息披露" if self.systemId == 1 else "碳中和发展评价"
+        self.execl_filename = f"{self.company_code}_{self.company_name}_{self.year}_{self.date}_{self.system_name}.xls"
         self.execl_filepath = os.path.join(self.excel_base_path, self.execl_filename)
 
         # 每个指标进行分析, 结果保存到 self.indicators 中
@@ -114,11 +115,11 @@ class AnalysisPDF():
                         indicator_level_3["文字信息披露质量"] = self.text_quality(indicator_level_3)
                         indicator_level_3["最终得分"] = self.get_final_score(indicator_level_3)
                     elif self.systemId == 2:
-                        # 三级指标计分方式
+                        # 应对新增的三级指标的情况 三级指标计分方式
                         if "计分方法分类（关键词+数字+字数）" in indicator_level_3.keys():
                             indicator_level_3_method = indicator_level_3["计分方法分类（关键词+数字+字数）"].strip()
                         else:
-                            indicator_level_3_method = "关键词+数字+字数"
+                            indicator_level_3_method = "关键词"
                         # 筛选含有绿色 碳 温室气体 环保 能源的相关段落
                         self.relevant_pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["绿色", "碳", "温室气体", "环保", "能源"])
                         # 根据关键词进行分析
