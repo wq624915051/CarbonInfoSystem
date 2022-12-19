@@ -1,5 +1,10 @@
 import xlrd
 import xlwt
+
+if True:
+    import os, sys
+    sys.path.append("D:\ALL\项目\碳信息披露\CarbonInfoSystem")
+
 from common.custom.logger import my_logger
 from common.custom.keywords_processor import split_keywords_with_comma
 
@@ -67,7 +72,7 @@ def read_indicators_from_excel1(filepath):
     返回值:
         indicators: 指标列表
     '''
-    # FIXME 空行处理
+    # FIXME 最后一行的读入问题 问题大概出在 row == lines-1的判断上（这么写感觉不优雅）
     excel_data = xlrd.open_workbook(filename=filepath, formatting_info=True)
     table = excel_data.sheets()[0]
     data = []  # 一级指标列表
@@ -81,15 +86,18 @@ def read_indicators_from_excel1(filepath):
         thrid_dict = {}
         for col in range(0, len(table.row_values(row))):
             if table.cell_value(0, col) == '三级指标':
-                thrid_dict['三级指标名称'] = table.cell_value(row, col)
-                thrid_dict['keywords'] = split_keywords_with_comma(
-                    table.cell_value(row, col + 1))
+                thrid_dict['三级指标名称'] = table.cell_value(row, col).strip()
+                if thrid_dict['三级指标名称'] == "" and  row != lines-1:
+                    # 如果三级指标名称为空，且不是最后一行，则跳过
+                    # FIXME 这么写感觉也有问题
+                    continue
+                thrid_dict['keywords'] = split_keywords_with_comma(table.cell_value(row, col + 1))
                 if (table.cell_value(row, col-1) != '' and row != 1) or row == lines-1:
                     sec_dict = {}
                     sec_dict['二级指标名称'] = scend_name
                     sec_dict['三级指标'] = thrid_list
                     sec_list.append(sec_dict)
-                    scend_name = table.cell_value(row, col-1)
+                    scend_name = table.cell_value(row, col-1).strip()
                     thrid_list = []
                     thrid_list.append(thrid_dict)
                 else:
@@ -99,8 +107,8 @@ def read_indicators_from_excel1(filepath):
                     first_dic['一级指标'] = first1_name
                     first_dic['需求目的'] = first2_name
                     first_dic['二级指标'] = sec_list
-                    first1_name = table.cell_value(row, col-3)
-                    first2_name = table.cell_value(row, col-2)
+                    first1_name = table.cell_value(row, col-3).strip()
+                    first2_name = table.cell_value(row, col-2).strip()
                     sec_list = []
                     data.append(first_dic)
     return data
@@ -113,44 +121,49 @@ def read_indicators_from_excel2(filepath):
     返回值:
         indicators: 指标列表
     '''
-    # FIXME 读取Excel文件时候，二级指标放在了错的一级指标下面
-    # FIXME 空行
+    # FIXME 最后一行读入问题
     excel_data = xlrd.open_workbook(filename=filepath, formatting_info=True)
     table = excel_data.sheets()[0]
-    data = []  # 一级指标列表
-    thrid_list = []
-    sec_list = []
-    first1_name = table.cell_value(1, 0)  # 一级指标名称
-    scend_name = table.cell_value(1, 2)  # 二级指标名称
+    data = []  # 用来存储一级指标列表
+    second_list = [] # 用来存储二级指标
+    thrid_list = [] # 用来存储三级指标
+    first_name = table.cell_value(1, 0).strip()  # 一级指标名称
+    second_name = table.cell_value(1, 1).strip()  # 二级指标名称
     lines = len(table.col(0))
+    # 遍历行
     for row in range(1, lines):
         thrid_dict = {}
+        # 遍历行中的每一列
         for col in range(0, len(table.row_values(row))):
             if table.cell_value(0, col) == '三级指标':
-                thrid_dict['三级指标名称'] = table.cell_value(row, col)
-                thrid_dict['keywords'] = split_keywords_with_comma(
-                    table.cell_value(row, col + 1))
-                thrid_dict['计分方法分类（关键词+数字+字数）'] = table.cell_value(row, col + 2)
-                thrid_dict['终端采分方法'] = table.cell_value(row, col + 3)
+                # 当前列的表头是 "三级指标"
+                thrid_dict['三级指标名称'] = table.cell_value(row, col).strip()
+                if thrid_dict['三级指标名称'] == "" and  row != lines-1:
+                    # 当前行的三级指标名称为空，且不是最后一行，跳过
+                    continue
+                thrid_dict['keywords'] = split_keywords_with_comma(table.cell_value(row, col + 1))
+                thrid_dict['计分方法分类（关键词+数字+字数）'] = table.cell_value(row, col + 2).strip()
+                thrid_dict['终端采分方法'] = table.cell_value(row, col + 3).strip()
                 thrid_dict['最高分'] = table.cell_value(row, col + 4)
-                # TODO 注释
                 if (table.cell_value(row, col-1) != '' and row != 1) or row == lines-1:
+                    # 判断当前行前1个单元格(二级指标)是否为空，或者当前行是否是最后一行，若是，则这个二级指标结束
                     sec_dict = {}
-                    sec_dict['二级指标名称'] = scend_name
+                    sec_dict['二级指标名称'] = second_name
                     sec_dict['三级指标'] = thrid_list
-                    sec_list.append(sec_dict)
-                    scend_name = table.cell_value(row, col-1)
+                    second_list.append(sec_dict)
+                    second_name = table.cell_value(row, col-1).strip()
                     thrid_list = []
                     thrid_list.append(thrid_dict)
                 else:
                     thrid_list.append(thrid_dict)
                 # TODO 注释
-                if (table.cell_value(row, col-3) != '' and row != 1) or row == lines-1:
+                if (table.cell_value(row, col-2) != '' and row != 1) or row == lines-1:
+                    # 判断当前行前2个单元格(一级指标)是否为空，或者当前行是否是最后一行，若是，则这个一级指标结束
                     first_dic = {}
-                    first_dic['一级指标'] = first1_name
-                    first_dic['二级指标'] = sec_list
-                    first1_name = table.cell_value(row, col-3)
-                    sec_list = []
+                    first_dic['一级指标'] = first_name
+                    first_dic['二级指标'] = second_list
+                    first_name = table.cell_value(row, col-2).strip()
+                    second_list = []
                     data.append(first_dic)
     return data
 
@@ -326,112 +339,4 @@ def write_indicators_to_excel2(filepath, data):
     workbook.save(filepath)
 
 if __name__ == '__main__':
-    # res = read_terms_from_excel(
-    #     filepath="D:\作业\研究生\研1\CarbonInfoSystem\data\所需表.xls", type=1)
-    # res = read_ESG_from_excel(
-    #     filepath="D:\作业\研究生\研1\CarbonInfoSystem\data\数据-股权融资优势和ESG评级.xls")
-    # res = read_indicators_from_excel1(
-    #     filepath="D:\作业\研究生\研1\CarbonInfoSystem\data\碳信息披露质量关键词.xls")
-    example_data1 = [
-        {
-            "一级指标": "一级指标",
-            "需求目的": "需求目的",
-            "二级指标": [
-                {
-                    "二级指标名称": "二级指标名称",
-                    "三级指标": [
-                        {
-                            "三级指标名称": "三级指标名称",
-                            "keywords": "碳排放，中和",
-                            "文字内容": "碳排放碳排放碳排放碳排放",
-                            "图片数量": 18,
-                            "表格数量": 15,
-                            "句子数量": 14,
-                            "常用词数量": 30,
-                            "专业词数量": 40,
-                            "数字个数": 3,
-                            "文字信息披露质量": "文字信息披露质量",
-                            "最终得分": 30
-                        },
-                        {
-                            "三级指标名称": "三级指标名称",
-                            "keywords": "碳排放，中和",
-                            "文字内容": "碳排放碳排放碳排放碳排放",
-                            "图片数量": 18,
-                            "表格数量": 15,
-                            "句子数量": 14,
-                            "常用词数量": 30,
-                            "专业词数量": 40,
-                            "数字个数": 3,
-                            "文字信息披露质量": "文字信息披露质量",
-                            "最终得分": 30
-                        }
-                    ]
-                },
-                {
-                    "二级指标名称": "二级指标名称",
-                    "三级指标": [
-                        {
-                            "三级指标名称": "三级指标名称",
-                            "keywords": "碳排放，中和",
-                            "文字内容": "碳排放碳排放碳排放碳排放",
-                            "图片数量": 18,
-                            "表格数量": 15,
-                            "句子数量": 14,
-                            "常用词数量": 30,
-                            "专业词数量": 40,
-                            "数字个数": 3,
-                            "文字信息披露质量": "文字信息披露质量",
-                            "最终得分": 30
-                        }
-                    ]
-                },
-            ]
-        },
-    ]
-
-    example_data2 = [
-        {
-            "一级指标": "一级指标",
-            "二级指标": [
-                {
-                    "二级指标名称": "二级指标名称",
-                    "三级指标": [
-                        {
-                            "三级指标名称": "三级指标名称",
-                            "keywords": "碳排放，中和",
-                            "计分方法分类（关键词+数字+字数）":"关键词",
-                            "终端采分方法":"设定了组织边界，赋值为1；否则为0",
-                            "最高分":1,
-                            "文字内容": "碳排放碳排放碳排放碳排放",
-                            "最终得分": 30
-                        },
-                        {
-                            "三级指标名称": "三级指标名称",
-                            "keywords": "碳排放，中和",
-                            "计分方法分类（关键词+数字+字数）":"关键词",
-                            "终端采分方法":"设定了组织边界，赋值为1；否则为0",
-                            "最高分":1,
-                            "文字内容": "碳排放碳排放碳排放碳排放",
-                            "最终得分": 30
-                        }
-                    ]
-                },
-                {
-                    "二级指标名称": "二级指标名称",
-                    "三级指标": [
-                        {
-                            "三级指标名称": "三级指标名称",
-                            "keywords": "碳排放，中和",
-                            "计分方法分类（关键词+数字+字数）":"关键词",
-                            "终端采分方法":"设定了组织边界，赋值为1；否则为0",
-                            "最高分":1,
-                            "文字内容": "碳排放碳排放碳排放碳排放",
-                            "最终得分": 30
-                        }
-                    ]
-                },
-            ]
-        },
-    ]
-    write_indicators_to_excel1(data=example_data1, filepath='test.xls')
+    data = read_indicators_from_excel2(os.path.join('D:\ALL\项目\碳信息披露\CarbonInfoSystem\data', '企业碳中和发展评价指标体系.xls'))
