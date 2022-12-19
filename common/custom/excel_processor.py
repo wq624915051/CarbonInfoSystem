@@ -307,6 +307,7 @@ def write_indicators_to_excel2(filepath, data):
             for thrid_dict in thrid_list:  # 一个dict对应一个三级指标
                 worksheet.write(tri_begin, 2, thrid_dict['三级指标名称'], style)
                 worksheet.write(tri_begin, 3, thrid_dict['keywords'], style)
+                # 应对新增的三级指标的情况
                 if '计分方法分类（关键词+数字+字数）' in thrid_dict:
                     worksheet.write(tri_begin, 4, thrid_dict['计分方法分类（关键词+数字+字数）'], style)
                 if '终端采分方法' in thrid_dict:
