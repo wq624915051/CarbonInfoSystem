@@ -1,5 +1,5 @@
 '''
-MyPDF类
+PdfProcessor类
 用于提取PDF文件中的文本、表格、图片等信息
 '''
 import os
