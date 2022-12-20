@@ -28,6 +28,9 @@ class PdfProcessor():
         self.documnet = fitz.open(filepath) # PyMuPdf打开PDF文件
         self.media_root = media_root # 保存图片的路径
         self.pdf_ocr = MyOCR()
+        self.zoom_x = 2.0 # 缩放比例
+        self.zoom_y = 2.0 # 缩放比例
+        self.mat = fitz.Matrix(self.zoom_x, self.zoom_y) # 缩放矩阵
 
         self.document_info = [] # PDF每一页的信息
         for pno, page in enumerate(self.documnet):
@@ -35,7 +38,7 @@ class PdfProcessor():
 
             # 把页面保存为图片
             img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}.png")
-            page.get_pixmap().save(img_save_path) 
+            page.get_pixmap(matrix=self.mat).save(img_save_path) 
 
             # 利用paddleocr进行版面分析和文字提取
             structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
