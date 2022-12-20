@@ -28,7 +28,7 @@ def get_paragraphs_with_keywords(document_info, keywords):
         这个段落实际是一整页的文本内容
     参数:
         document_info: 文档信息
-        word: list[特定词语]
+        keywords: list[特定词语]
     返回值:
         result: List[(段落所在的页码, 段落文本内容)]
     """
@@ -44,14 +44,14 @@ def get_paragraphs_with_keywords(document_info, keywords):
     result = list(set(result)) # 去重
     return result
 
-def get_paragraphs_with_keywords_precisely(document_info, keywords):
+def get_paragraphs_with_keywords_precisely(document_info, keywords, sentence_number=5):
     """
     描述: 
         获取含有特定词语的段落
-        这个段落实际是特定词语所在的句子的前后一共五句话
+        这个段落实际是特定词语所在的句子的前后一共 sentence_number 句话
     参数:
         document_info: 文档信息
-        word: list[特定词语]
+        keywords: list[特定词语]
     返回值:
         result: List[(段落所在的页码, 段落文本内容)]
     """
@@ -72,8 +72,8 @@ def get_paragraphs_with_keywords_precisely(document_info, keywords):
                         如果句子的前面不足两句话，则从上一页的末尾开始
                         如果句子的后面不足两句话，则从下一页的开头开始
                         """
-                        start = idx_sentences - 2
-                        end = idx_sentences + 3
+                        start = idx_sentences - (sentence_number // 2)
+                        end = idx_sentences + (sentence_number - sentence_number // 2)
                         previous_sentences = [] # 保存前面页的句子
                         next_sentences = [] # 保存后面页的句子
                         if start < 0:
