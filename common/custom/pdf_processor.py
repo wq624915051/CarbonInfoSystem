@@ -4,7 +4,7 @@ MyPDF类
 '''
 import os
 import fitz
-
+import numpy as np
 from common.custom.ocr import MyOCR
 
 
@@ -42,6 +42,7 @@ class PdfProcessor():
             page_info["content"] = self.get_content(structure) # 页面内容
             page_info["image_count"] = self.get_image_count(structure) # 图片数量
             page_info["table_count"] = self.get_table_count(structure) # 表格数量
+            page_info["new_structure"] = self.get_image_table_count(structure) # 每一块下方的图片数量和表格数量
 
             self.document_info.append(page_info) # 添加到文档信息中
         
@@ -89,6 +90,51 @@ class PdfProcessor():
             if item["type"] == "table":
                 table_count += 1
         return table_count
+
+    def get_image_table_count(self, structure):
+        '''
+        描述：
+            获取每一个文字块下方的图片数量和表格数量
+        参数：  
+            structure: 版面分析结果 List[Dict]
+        返回值：    
+        '''
+        # 新的版面结构，包含每一块的类型、y坐标、[内容]
+        new_structure = []
+        for item in structure:
+            axis_y_top  = item["bbox"][1]
+            axis_y_bottom = item["bbox"][3]
+            axis_y_mean = np.mean([axis_y_top, axis_y_bottom])
+            tmp = {"type": item["type"], "axis_y_top": axis_y_top,
+                    "axis_y_bottom": axis_y_bottom, "axis_y_mean": axis_y_mean}
+            if item["type"] == "text":
+                content = "".join([line["text"] for line in item["res"]])
+                tmp["content"] = content
+                new_structure.append(tmp)
+            elif item["type"]  in ["table", "figure"]:
+                new_structure.append(tmp)
+        
+        # 遍历每一块，获取阈值内的图片数量和表格数量
+        y_threshold = 300 # y坐标的阈值
+        for i, item in enumerate(new_structure):
+            if item["type"] == "text":
+                item["image_count"] = 0
+                item["table_count"] = 0
+                for j in range(i+1, len(new_structure)):
+                    if new_structure[j]["axis_y_top"] - item["axis_y_bottom"] < y_threshold:
+                        # 如果下一块的顶部y坐标与当前块的底部y坐标的差小于阈值，则计数
+                        if new_structure[j]["type"] == "figure":
+                            item["image_count"] += 1
+                        elif new_structure[j]["type"] == "table":
+                            item["table_count"] += 1
+                    else:
+                        # 如果下一块的顶部y坐标与当前块的底部y坐标的差大于阈值，则跳出循环
+                        break
+        
+        # 保留text类型的 content、image_count、table_count字段
+        res_structure = [{k: item[k] for k in ["content", "image_count", "table_count"]} for item in new_structure if item["type"] == "text"]
+
+        return res_structure
 
     def delete_images(self, del_path):
         '''
