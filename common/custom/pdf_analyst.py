@@ -5,8 +5,9 @@ AnalysisPDF类
 import os
 import re
 import datetime
-from django.conf import settings
+from itertools import product
 
+from django.conf import settings
 from common.base.base_respons import retJson
 from common.custom.pdf_processor import PdfProcessor
 from common.custom.excel_processor import write_indicators_to_excel1
@@ -41,6 +42,7 @@ class PdfAnalyst():
         self.date = datetime.datetime.now().strftime('%Y%m%d')
 
         self.pdf = PdfProcessor(self.filepath, media_root=settings.MEDIA_ROOT) # 提取PDF内容存储到self.pdf.document_info
+        self.keywords_normal = ["碳", "绿色", "环保"]
 
         # 读取ESG数据
         filepath_ESG_data = os.path.join(settings.BASE_DIR, "data", "数据-股权融资优势和ESG评级.xls")
@@ -105,7 +107,7 @@ class PdfAnalyst():
 
                     if self.systemId == 1:
                         # 筛选含有碳、环保、绿色的相关段落
-                        self.relevant_pno_paragraphs = get_paragraphs_with_keywords_precisely(self.pdf.document_info, ["碳", "绿色", "环保"])
+                        self.relevant_pno_paragraphs = get_paragraphs_with_keywords_precisely(self.pdf.document_info, self.keywords_normal)
                         # 根据关键词进行分析
                         content, image_count, table_count, sentences_count = self.analysis_with_keywords_system1(indicator_level_3_name, indicator_level_3_keywords)
                         indicator_level_3["文字内容"] = content
@@ -169,27 +171,35 @@ class PdfAnalyst():
             
         if name == "高管致辞":
             # 获取高管致辞段落
-            pno_paragraphs = get_paragraphs_with_keywords_precisely(self.pdf.document_info, ["致辞", "高管致辞", "董事长致辞", "董事长"])
+            keywords_special = ["致辞", "高管致辞", "董事长致辞", "董事长"]
+            pno_paragraphs = get_paragraphs_with_keywords_precisely(self.pdf.document_info, keywords_special)
             # 段落中含有碳、环保、绿色的句子
-            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "绿色", "环保"])
+            pno_sentences = get_sentences_with_keywords(pno_paragraphs, self.keywords_normal)
+            # 获取表格和图片数量
+            table_count, image_count = self.get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_special)
         elif name == "减少的二氧化碳降低百分比":
             # 段落中含有 关键词 的句子
             keywords.append("二氧化碳排放下降")
             keywords.append("二氧化碳排放量下降")
             keywords.append("二氧化碳排放量减少")
+            # 段落中含有 关键词 的句子
             pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords)
+            # 获取表格和图片数量
+            table_count, image_count = self.get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords)
         else:
             # 段落中含有 关键词 的句子
             pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords)
+            # 获取表格和图片数量
+            table_count, image_count = self.get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords)
         
-        sentences = [item[1] for item in pno_sentences] # 句子列表
+        sentences = list(set([item[1].strip() for item in pno_sentences])) # 获取句子列表, 并去重
         content = "\n".join(sentences) # 拼接成字符串
 
         pno_list = [item[0] for item in pno_sentences] # 句子所在的页码
         pno_list = list(set(pno_list)) # 页码去重
         # 获取图片数量和表格数量
-        image_count = sum([page_info["image_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
-        table_count = sum([page_info["table_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
+        # image_count = sum([page_info["image_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
+        # table_count = sum([page_info["table_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
         # 句子数量
         sentences_count = len(sentences)
         return content, image_count, table_count, sentences_count
@@ -386,6 +396,38 @@ class PdfAnalyst():
         score += self.w2 * indicator_level_3["图片数量"]      
         score += self.w3 * indicator_level_3["表格数量"]      
         return score
+
+    def get_table_image_count(self, document_info, keywords_1, keywords_2):
+        """
+        描述：
+            获取表格和图片数量
+        参数：
+            document_info: dict 文档信息
+            keywords_1: list 关键词
+            keywords_2: list 关键词
+        返回值：
+            table_count: int 表格数量
+            image_count: int 图片数量
+        """
+        table_count = 0
+        image_count = 0
+        founded_list  = [] # 用于存储已经匹配到的句子
+        for idx_page, page_info in enumerate(document_info):
+            content = page_info["content"] # 获取每一页的文本内容
+            # 去除换行符、回车符、制表符
+            content = content.replace('\n', '').replace('\r', '').replace('\t', '')
+            for (word_1, word_2) in list(product(keywords_1, keywords_2)):
+                # 如果当前页的内容中包含关键词1和关键词2，则进行下一步处理
+                if word_1 in content and word_2 in content:
+                    structure = page_info["new_structure"] # 获取每一页的结构化信息
+                    for idx_item, item in enumerate(structure):
+                        # 如果当前句子的内容中包含关键词1和关键词2，且当前句子没有被匹配过，则进行下一步处理
+                        if word_1 in item["content"]  and word_2 in content and (idx_page, idx_item) not in founded_list:
+                            founded_list.append((idx_page, idx_item))
+                            table_count += item["table_count"]
+                            image_count += item["image_count"]
+        return table_count, image_count
+        
 
 if __name__ == "__main__":
     # 测试
