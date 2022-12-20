@@ -17,7 +17,7 @@ from common.custom.keywords_processor import get_paragraphs_with_keywords
 from common.custom.keywords_processor import get_paragraphs_with_keywords_precisely
 from common.custom.keywords_processor import get_sentences_with_keywords
 
-class AnalysisPDF():
+class PdfAnalyst():
     '''
     描述：对每个PDF进行分析
     参数：
@@ -427,5 +427,5 @@ if __name__ == "__main__":
             }
             ]
 
-    analysis_pdf = AnalysisPDF(filepath, indicators, w1, w2, w3, excel_base_path)
+    analysis_pdf = PdfAnalyst(filepath, indicators, w1, w2, w3, excel_base_path)
 

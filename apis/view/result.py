@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from common.base.base_respons import retJson
 from common.custom.myPDF import MyPDF
-from common.custom.analysisPDF import AnalysisPDF
+from common.custom.pdf_analyst import PdfAnalyst
 from common.custom.logger import my_logger
 
 @csrf_exempt
@@ -85,7 +85,7 @@ def calculate(request):
             # 遍历每个PDF文件，进行分析计算
             files_indicators = []
             for filepath in filepaths:
-                analysis_pdf = AnalysisPDF(filepath, indicators, systemId, w1, w2, w3, excel_base_path)
+                analysis_pdf = PdfAnalyst(filepath, indicators, systemId, w1, w2, w3, excel_base_path)
                 files_indicators.append(analysis_pdf.result)
                 my_logger.info(f"文件 {filepath} 分析计算成功")
 
