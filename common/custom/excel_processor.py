@@ -3,7 +3,7 @@ import xlwt
 
 if True:
     import os, sys
-    sys.path.append("D:\ALL\项目\碳信息披露\CarbonInfoSystem")
+    sys.path.append("D:\作业\研究生\研1\CarbonInfoSystem")
 
 from common.custom.logger import my_logger
 from common.custom.keywords_processor import split_keywords_with_comma
@@ -72,7 +72,6 @@ def read_indicators_from_excel1(filepath):
     返回值:
         indicators: 指标列表
     '''
-    # FIXME 最后一行的读入问题 问题大概出在 row == lines-1的判断上（这么写感觉不优雅）
     excel_data = xlrd.open_workbook(filename=filepath, formatting_info=True)
     table = excel_data.sheets()[0]
     data = []  # 一级指标列表
@@ -89,10 +88,10 @@ def read_indicators_from_excel1(filepath):
                 thrid_dict['三级指标名称'] = table.cell_value(row, col).strip()
                 if thrid_dict['三级指标名称'] == "" and  row != lines-1:
                     # 如果三级指标名称为空，且不是最后一行，则跳过
-                    # FIXME 这么写感觉也有问题
                     continue
                 thrid_dict['keywords'] = split_keywords_with_comma(table.cell_value(row, col + 1))
-                if (table.cell_value(row, col-1) != '' and row != 1) or row == lines-1:
+                if table.cell_value(row, col-1) != '' and row != 1:
+                    # 如果二级指标名称不为空，代表其已经跳转到下一个二级指标，则将当前二级指标打包
                     sec_dict = {}
                     sec_dict['二级指标名称'] = scend_name
                     sec_dict['三级指标'] = thrid_list
@@ -100,9 +99,19 @@ def read_indicators_from_excel1(filepath):
                     scend_name = table.cell_value(row, col-1).strip()
                     thrid_list = []
                     thrid_list.append(thrid_dict)
+                elif row == lines-1:
+                    #由于最后一行下面没有数据，所以要做一个特殊判断，最后一行打包现有的数据
+                    sec_dict = {}
+                    if thrid_dict['三级指标名称'] != "":
+                        thrid_list.append(thrid_dict)
+                    sec_dict['二级指标名称'] = scend_name
+                    sec_dict['三级指标'] = thrid_list
+                    sec_list.append(sec_dict)
+                    scend_name = table.cell_value(row, col-1).strip()
                 else:
                     thrid_list.append(thrid_dict)
                 if (table.cell_value(row, col-3) != '' and row != 1) or row == lines-1:
+                    # 如果一级指标名称不为空，代表其已经跳转到下一个一级指标，则将当前一级指标打包
                     first_dic = {}
                     first_dic['一级指标'] = first1_name
                     first_dic['需求目的'] = first2_name
@@ -121,7 +130,6 @@ def read_indicators_from_excel2(filepath):
     返回值:
         indicators: 指标列表
     '''
-    # FIXME 最后一行读入问题
     excel_data = xlrd.open_workbook(filename=filepath, formatting_info=True)
     table = excel_data.sheets()[0]
     data = []  # 用来存储一级指标列表
@@ -145,7 +153,7 @@ def read_indicators_from_excel2(filepath):
                 thrid_dict['计分方法分类（关键词+数字+字数）'] = table.cell_value(row, col + 2).strip()
                 thrid_dict['终端采分方法'] = table.cell_value(row, col + 3).strip()
                 thrid_dict['最高分'] = table.cell_value(row, col + 4)
-                if (table.cell_value(row, col-1) != '' and row != 1) or row == lines-1:
+                if table.cell_value(row, col-1) != '' and row != 1:
                     # 判断当前行前1个单元格(二级指标)是否为空，或者当前行是否是最后一行，若是，则这个二级指标结束
                     sec_dict = {}
                     sec_dict['二级指标名称'] = second_name
@@ -154,6 +162,13 @@ def read_indicators_from_excel2(filepath):
                     second_name = table.cell_value(row, col-1).strip()
                     thrid_list = []
                     thrid_list.append(thrid_dict)
+                elif row == lines-1:
+                    sec_dict = {}
+                    if thrid_dict['三级指标名称'] != "":
+                        thrid_list.append(thrid_dict)
+                    sec_dict['二级指标名称'] = second_name
+                    sec_dict['三级指标'] = thrid_list
+                    second_list.append(sec_dict)
                 else:
                     thrid_list.append(thrid_dict)
                 # TODO 注释
@@ -339,4 +354,5 @@ def write_indicators_to_excel2(filepath, data):
     workbook.save(filepath)
 
 if __name__ == '__main__':
-    data = read_indicators_from_excel2(os.path.join('D:\ALL\项目\碳信息披露\CarbonInfoSystem\data', '企业碳中和发展评价指标体系.xls'))
+    data = read_indicators_from_excel2(os.path.join('D:\作业\研究生\研1\CarbonInfoSystem\data\企业碳中和发展评价指标体系.xls'))
+    print(data)
