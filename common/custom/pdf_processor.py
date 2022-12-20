@@ -98,6 +98,12 @@ class PdfProcessor():
         参数：  
             structure: 版面分析结果 List[Dict]
         返回值：    
+            new_structure: 新的版面结构 List[Dict]
+            Dict结构： {
+                "content": 文字块内容,
+                "image_count": 文字块下方的图片数量,
+                "table_count": 文字块下方的表格数量
+            }
         '''
         # 新的版面结构，包含每一块的类型、y坐标、[内容]
         new_structure = []
