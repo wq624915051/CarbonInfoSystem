@@ -1,10 +1,6 @@
+import os
 import xlrd
 import xlwt
-
-if True:
-    import os, sys
-    sys.path.append("D:\作业\研究生\研1\CarbonInfoSystem")
-
 from common.custom.logger import my_logger
 from common.custom.keywords_processor import split_keywords_with_comma
 
