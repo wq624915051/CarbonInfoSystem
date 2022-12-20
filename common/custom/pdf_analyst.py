@@ -8,7 +8,7 @@ import datetime
 from django.conf import settings
 
 from common.base.base_respons import retJson
-from common.custom.myPDF import MyPDF
+from common.custom.pdf_processor import PdfProcessor
 from common.custom.excel_processor import write_indicators_to_excel1
 from common.custom.excel_processor import write_indicators_to_excel2
 from common.custom.excel_processor import read_ESG_from_excel
@@ -40,7 +40,7 @@ class PdfAnalyst():
         self.excel_base_path = excel_base_path
         self.date = datetime.datetime.now().strftime('%Y%m%d')
 
-        self.pdf = MyPDF(self.filepath, media_root=settings.MEDIA_ROOT) # 提取PDF内容存储到self.pdf.document_info
+        self.pdf = PdfProcessor(self.filepath, media_root=settings.MEDIA_ROOT) # 提取PDF内容存储到self.pdf.document_info
 
         # 读取ESG数据
         filepath_ESG_data = os.path.join(settings.BASE_DIR, "data", "数据-股权融资优势和ESG评级.xls")
