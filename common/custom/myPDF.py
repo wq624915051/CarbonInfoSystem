@@ -43,7 +43,7 @@ class MyPDF():
             page_info["type"] = page_type
             if page_type == "text":
                 # 获取页面的文本内容
-                content = self.get_textpage_content(page_info)
+                content = self.get_textpage_content_by_pymupdf(page_info)
                 page_info["content"] = content
 
                 # 通过pdfplumber获取图片
@@ -101,7 +101,29 @@ class MyPDF():
         else:
             return "text"
     
-    def get_textpage_content(self, page_info):
+    def get_textpage_content_by_pdfplumber_directly(self, page):
+        """
+        描述： 
+            通过pdfplumber直接获取页面的文本内容
+        参数：
+            page: 页面
+        返回值：    
+            content: 页面的文本内容
+        """
+        return page.extract_text()
+
+    def get_textpage_content_by_pymupdf_directly(self, page):
+        """
+        描述：
+            通过pymupdf直接获取页面的文本内容
+        参数：
+            page: 页面
+        返回值：    
+            content: 页面的文本内容
+        """
+        return page.get_text("text")
+
+    def get_textpage_content_by_pymupdf(self, page_info):
         '''
         描述: 
             获取页面的文本内容
