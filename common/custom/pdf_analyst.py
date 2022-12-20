@@ -175,7 +175,7 @@ class PdfAnalyst():
             # 获取高管致辞段落
             keywords_special = ["致辞", "高管致辞", "董事长致辞", "董事长"]
             pno_paragraphs = get_paragraphs_with_keywords_precisely(
-                self.pdf.document_info, keywords_special, sentence_number=10)
+                self.pdf.document_info, keywords_special, sentence_number=20)
             # 段落中含有碳、环保、绿色的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, self.keywords_normal)
             # 获取表格和图片数量
