@@ -14,6 +14,7 @@ from common.custom.excel_processor import write_indicators_to_excel2
 from common.custom.excel_processor import read_ESG_from_excel
 from common.custom.excel_processor import read_terms_from_excel
 from common.custom.keywords_processor import get_paragraphs_with_keywords
+from common.custom.keywords_processor import get_paragraphs_with_keywords_precisely
 from common.custom.keywords_processor import get_sentences_with_keywords
 
 class AnalysisPDF():
@@ -99,10 +100,12 @@ class AnalysisPDF():
                 for indicator_level_3 in indicator_level_2["三级指标"]:
                     indicator_level_3_name = indicator_level_3["三级指标名称"]
                     # 用,分割关键词
-                    indicator_level_3_keywords = [keyword.strip() for keyword in indicator_level_3["keywords"].split(',')]
+                    indicator_level_3_keyword = [keyword.strip() for keyword in indicator_level_3["keywords"].split(',')]
+                    indicator_level_3_keywords = [keyword for keyword in indicator_level_3_keyword if keyword != '']
+
                     if self.systemId == 1:
                         # 筛选含有碳、环保、绿色的相关段落
-                        self.relevant_pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["碳", "绿色", "环保"])
+                        self.relevant_pno_paragraphs = get_paragraphs_with_keywords_precisely(self.pdf.document_info, ["碳", "绿色", "环保"])
                         # 根据关键词进行分析
                         content, image_count, table_count, sentences_count = self.analysis_with_keywords_system1(indicator_level_3_name, indicator_level_3_keywords)
                         indicator_level_3["文字内容"] = content
@@ -121,10 +124,10 @@ class AnalysisPDF():
                         else:
                             indicator_level_3_method = "关键词"
                         # 筛选含有绿色 碳 温室气体 环保 能源的相关段落
-                        self.relevant_pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["绿色", "碳", "温室气体", "环保", "能源"])
+                        self.relevant_pno_paragraphs = get_paragraphs_with_keywords_precisely(self.pdf.document_info, ["绿色", "碳", "温室气体", "环保", "能源"])
                         # 根据关键词进行分析
                         content, score = self.analysis_with_keywords_system2(
-                            indicator_level_3_name, indicator_level_3_keywords, indicator_level_3_method)
+                            indicator_level_3_name, indicator_level_3_keyword, indicator_level_3_method)
                         indicator_level_3["文字内容"] = content
                         indicator_level_3["最终得分"] = score
 
@@ -159,13 +162,14 @@ class AnalysisPDF():
             content: string 提取的文字内容
             image_count: int 图片数量
             table_count: int 表格数量
+            sentences_count: int 句子数量
         '''
         if len(keywords) == 0:
-            return "", 0, 0 # 关键词没有就空着
+            return "", 0, 0, 0 # 关键词没有就空着
             
         if name == "高管致辞":
             # 获取高管致辞段落
-            pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["致辞", "高管致辞", "董事长致辞", "董事长"])
+            pno_paragraphs = get_paragraphs_with_keywords_precisely(self.pdf.document_info, ["致辞", "高管致辞", "董事长致辞", "董事长"])
             # 段落中含有碳、环保、绿色的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "绿色", "环保"])
         elif name == "减少的二氧化碳降低百分比":
@@ -214,7 +218,7 @@ class AnalysisPDF():
             return "", ""
         if name == "高管有关双碳目标或碳减排的声明与承诺":
             # 获取高管致辞段落
-            pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["致辞", "高管致辞", "董事长致辞", "管理层致辞"])
+            pno_paragraphs = get_paragraphs_with_keywords_precisely(self.pdf.document_info, ["致辞", "高管致辞", "董事长致辞", "管理层致辞"])
             # 段落中含有碳、气候、节能、能源的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候", "节能", "能源"])
             sentences = [item[1] for item in pno_sentences] # 句子列表
@@ -224,7 +228,7 @@ class AnalysisPDF():
 
         elif name == "是否将此类气候变化流程纳入企业的整体风险管理系统或流程":
             # 获取“风险”段落
-            pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["风险"])
+            pno_paragraphs = get_paragraphs_with_keywords_precisely(self.pdf.document_info, ["风险"])
             # 段落中含有管理机制、制度、流程、整体、气候变化、能源的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["管理机制", "制度", "流程", "整体", "气候变化", "能源"])
             sentences = [item[1] for item in pno_sentences] # 句子列表
@@ -234,7 +238,7 @@ class AnalysisPDF():
 
         elif name == "利益相关者沟通中识别了与双碳目标或低碳有关的利益相关者及其期望":
             # 获取“利益相关者”段落
-            pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["利益相关者"])
+            pno_paragraphs = get_paragraphs_with_keywords_precisely(self.pdf.document_info, ["利益相关者"])
             # 段落中含有碳、气候变化、节能、能源的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候变化", "节能", "能源"])
             sentences = [item[1] for item in pno_sentences] # 句子列表
@@ -244,7 +248,7 @@ class AnalysisPDF():
 
         elif name == "采取一致的方法学对长期的碳排放情况进行比较":
             # 获取“碳排放”段落
-            pno_paragraphs = get_paragraphs_with_keywords(self.pdf.document_info, ["碳排放"])
+            pno_paragraphs = get_paragraphs_with_keywords_precisely(self.pdf.document_info, ["碳排放"])
             # 获取去年和前年的年份
             last_year, last_last_year = str(self.year - 1), str(self.year - 2)
             # 段落中含有去年和前年的句子
@@ -321,7 +325,8 @@ class AnalysisPDF():
         返回值：
             count: int 常用词数量
         '''
-        count_list = [content.count(word) for word in self.common_words]
+        # count_list = [content.count(word) for word in self.common_words] # 统计单词出现的次数
+        count_list = [word in content for word in self.common_words] # 统计单词是否出现
         return sum(count_list)
     
     def get_professional_words_count(self, content):
@@ -332,7 +337,8 @@ class AnalysisPDF():
         返回值：
             count: int 专业词数量
         '''
-        count_list = [content.count(word) for word in self.professional_words]
+        # count_list = [content.count(word) for word in self.professional_words] # 统计单词出现的次数
+        count_list = [word in content for word in self.professional_words] # 统计单词是否出现
         return sum(count_list)
 
     def get_number_count(self, content):
@@ -344,9 +350,11 @@ class AnalysisPDF():
         years = re.findall(r"(19\d{2}|20\d{2})", content)
         # 匹配所有日期 yyyy-./mm-./dd, mm-./dd-./yyyy
         dates = re.findall("\d{4}[-|.|/]?\d{2}[-|.|/]?\d{2}|\d{2}[-|.|/]?\d{2}[-|.|/]?\d{4}", content)
+        # 匹配所有章节号，例如4.3.1
+        chapters = re.findall(r"\d+\.?\d*\.\d+\.?\d*\.\d+\.?\d*", content)
 
-        # 去除年份和日期后，剩余的数字就是最终结果
-        result = [n for n in numbers if n not in numbers_ISO and all(n not in d for d in dates + years)]
+        # 去除年份和日期章节号后，剩余的数字就是最终结果
+        result = [n for n in numbers if n not in numbers_ISO and all(n not in d for d in dates + years + chapters)]
         return len(result)     
 
     def text_quality(self, indicator_level_3):
