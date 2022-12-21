@@ -1,4 +1,6 @@
 import re
+from itertools import product
+
 from common.custom.pdf_processor import clean_content
 
 def preprocess_keywords(keywords_str):
@@ -41,6 +43,29 @@ def preprocess_keywords(keywords_str):
         raise Exception("关键词中的括号不匹配")
     else:
         return split_keywords_with_comma(keywords_str)
+
+def split_keywords(keywords):
+    """
+    描述:
+        把关键词分成2种形式
+        把'环境风险,环保风险,(转型),(识别)'分成2个List: 
+        第一类关键词：不包含括号的关键词 ['环境风险', '环保风险']
+        第二类关键词：包含括号的关键词 ['转型', '识别']
+    参数：
+        keywords: str 关键词
+    返回值：
+        keywords_1: list 第一类关键词
+        keywords_2: list 第二类关键词   
+    """
+    
+    keyword_list = keywords.split(',')
+
+    # 第一类关键词
+    keywords_1= [item for item in keyword_list if '(' not in item]
+    # 第二类关键词, 并去除括号
+    keywords_2 = [item.replace('(', '').replace(')', '') for item in keyword_list if '(' in item]
+
+    return keywords_1, keywords_2
 
 def split_keywords_with_comma(keywords):
     """
@@ -141,7 +166,7 @@ def get_paragraphs_with_keywords_precisely(document_info, keywords, sentence_num
     result = list(set(result)) # 去重
     return result
 
-def get_sentences_with_keywords(pno_paragraphs, keywords):
+def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2):
     """
     描述: 在筛选出来的段落中找到关键词所在的句（以句号划分）
     参数:
@@ -150,16 +175,57 @@ def get_sentences_with_keywords(pno_paragraphs, keywords):
     返回值:
         sentences: List[(句子所在的页码, 句子)]
     """
+    # 如果只有一个关键词，则把第二个关键词设置为空, 防止product的结果为空
+    keywords_1 = [""]  if len(keywords_1) == 0 else keywords_1
+    keywords_2 = [""]  if len(keywords_2) == 0 else keywords_2
+    
     pattern = r'[^。!！?？]*[。!！?？]' # 定义正则表达式，用于匹配句子
     result_sentences = [] # 保存结果
     for pno, paragraph in pno_paragraphs:
         # 使用正则表达式查找所有句子的位置
         sentences = re.findall(pattern, paragraph)
         for sentence in sentences:
-            for keyword in keywords:
-                if keyword in sentence:
+            for (word_1, word_2) in list(product(keywords_1, keywords_2)):
+                if word_1 in sentence and word_2 in sentence:
                     sentence = sentence.strip() # 去除首尾空格
                     result_sentences.append((pno, sentence))
 
     result_sentences = list(set(result_sentences)) # 去重
     return result_sentences
+
+def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3):
+    """
+    描述：
+        获取表格和图片数量
+    参数：
+        document_info: dict 文档信息
+        keywords_1: list 关键词
+        keywords_2: list 关键词
+        keywords_3: list 关键词
+    返回值：
+        table_count: int 表格数量
+        image_count: int 图片数量
+    """
+
+    # 如果只有一个关键词，则把第二个关键词设置为空, 防止product的结果为空
+    keywords_1 = [""]  if len(keywords_1) == 0 else keywords_1
+    keywords_2 = [""]  if len(keywords_2) == 0 else keywords_2
+    keywords_3 = [""]  if len(keywords_3) == 0 else keywords_3
+
+    table_count = 0
+    image_count = 0
+    founded_list  = [] # 用于存储已经匹配到的句子
+    for idx_page, page_info in enumerate(document_info):
+        content = page_info["content"] # 获取每一页的文本内容
+        content = clean_content(content) # 去除换行符、回车符、制表符、章节号
+        for (word_1, word_2, word_3) in list(product(keywords_1, keywords_2)):
+            # 如果当前页的内容中包含关键词1和关键词2，则进行下一步处理
+            if word_1 in content and word_2 in content and word_3 in content:
+                structure = page_info["new_structure"] # 获取每一页的结构化信息
+                for idx_item, item in enumerate(structure):
+                    # 如果当前句子的内容中包含关键词1和关键词2，且当前句子没有被匹配过，则进行下一步处理
+                    if word_1 in item["content"]  and word_2 in content and (idx_page, idx_item) not in founded_list:
+                        founded_list.append((idx_page, idx_item))
+                        table_count += item["table_count"]
+                        image_count += item["image_count"]
+    return table_count, image_count

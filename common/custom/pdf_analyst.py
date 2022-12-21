@@ -5,7 +5,6 @@ AnalysisPDF类
 import os
 import re
 import datetime
-from itertools import product
 
 from django.conf import settings
 from common.base.base_respons import retJson
@@ -14,6 +13,8 @@ from common.custom.excel_processor import write_indicators_to_excel1
 from common.custom.excel_processor import write_indicators_to_excel2
 from common.custom.excel_processor import read_ESG_from_excel
 from common.custom.excel_processor import read_terms_from_excel
+from common.custom.keywords_processor import split_keywords
+from common.custom.keywords_processor import get_table_image_count
 from common.custom.keywords_processor import get_paragraphs_with_keywords
 from common.custom.keywords_processor import get_paragraphs_with_keywords_precisely
 from common.custom.keywords_processor import get_sentences_with_keywords
@@ -105,15 +106,14 @@ class PdfAnalyst():
                 for indicator_level_3 in indicator_level_2["三级指标"]:
                     indicator_level_3_name = indicator_level_3["三级指标名称"]
                     # 用,分割关键词
-                    indicator_level_3_keyword = [keyword.strip() for keyword in indicator_level_3["keywords"].split(',')]
-                    indicator_level_3_keywords = [keyword for keyword in indicator_level_3_keyword if keyword != '']
+                    keywords_1, keywords_2 = split_keywords(indicator_level_3["keywords"])
 
                     if self.systemId == 1:
                         # 筛选含有碳、环保、绿色的相关段落
                         self.relevant_pno_paragraphs = get_paragraphs_with_keywords_precisely(
                             self.pdf.document_info, self.keywords_normal, sentence_number=5)
                         # 根据关键词进行分析
-                        content, image_count, table_count, sentences_count = self.analysis_with_keywords_system1(indicator_level_3_name, indicator_level_3_keywords)
+                        content, image_count, table_count, sentences_count = self.analysis_with_keywords_system1(indicator_level_3_name, keywords_1, keywords_2)
                         indicator_level_3["文字内容"] = content
                         indicator_level_3["图片数量"] = image_count
                         indicator_level_3["表格数量"] = table_count
@@ -134,7 +134,7 @@ class PdfAnalyst():
                             self.pdf.document_info, ["绿色", "碳", "温室气体", "环保", "能源"], sentence_number=5)
                         # 根据关键词进行分析
                         content, score = self.analysis_with_keywords_system2(
-                            indicator_level_3_name, indicator_level_3_keyword, indicator_level_3_method)
+                            indicator_level_3_name, indicator_level_3_method, keywords_1, keywords_2)
                         indicator_level_3["文字内容"] = content
                         indicator_level_3["最终得分"] = score
 
@@ -159,7 +159,7 @@ class PdfAnalyst():
         year = int(filename.split('_')[2])
         return code, name, year
 
-    def analysis_with_keywords_system1(self, name, keywords):
+    def analysis_with_keywords_system1(self, name, keywords_1, keywords_2):
         '''
         描述：根据三级指标名称及关键词对碳信息披露进行分析
         参数：
@@ -171,7 +171,7 @@ class PdfAnalyst():
             table_count: int 表格数量
             sentences_count: int 句子数量
         '''
-        if len(keywords) == 0:
+        if len(keywords_1) == 0:
             return "", 0, 0, 0 # 关键词没有就空着
             
         if name == "高管致辞":
@@ -180,23 +180,23 @@ class PdfAnalyst():
             pno_paragraphs = get_paragraphs_with_keywords_precisely(
                 self.pdf.document_info, keywords_special, sentence_number=30)
             # 段落中含有碳、环保、绿色的句子
-            pno_sentences = get_sentences_with_keywords(pno_paragraphs, self.keywords_normal)
+            pno_sentences = get_sentences_with_keywords(pno_paragraphs, self.keywords_normal, keywords_2=[])
             # 获取表格和图片数量
-            table_count, image_count = self.get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_special)
+            table_count, image_count = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_special, keywords_2=[])
         elif name == "减少的二氧化碳降低百分比":
             # 段落中含有 关键词 的句子
-            keywords.append("二氧化碳排放下降")
-            keywords.append("二氧化碳排放量下降")
-            keywords.append("二氧化碳排放量减少")
+            keywords_1.append("二氧化碳排放下降")
+            keywords_1.append("二氧化碳排放量下降")
+            keywords_1.append("二氧化碳排放量减少")
             # 段落中含有 关键词 的句子
-            pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords)
+            pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_1, keywords_2=[])
             # 获取表格和图片数量
-            table_count, image_count = self.get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords)
+            table_count, image_count = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_1, keywords_2=[])
         else:
             # 段落中含有 关键词 的句子
-            pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords)
+            pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_1, keywords_2)
             # 获取表格和图片数量
-            table_count, image_count = self.get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords)
+            table_count, image_count = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_1, keywords_2)
         
         sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
         content = "\n".join(sentences) # 拼接成字符串
@@ -210,7 +210,7 @@ class PdfAnalyst():
         sentences_count = len(sentences)
         return content, image_count, table_count, sentences_count
 
-    def analysis_with_keywords_system2(self, name, keywords, method):
+    def analysis_with_keywords_system2(self, name, method, keywords_1, keywords_2):
         '''
         描述：根据三级指标名称及关键词对碳中和发展进行分析
         参数：
@@ -220,6 +220,7 @@ class PdfAnalyst():
             content: string 提取的文字内容
             score: int 分数
         '''
+        # TODO keywords_2=[]
         # 需要忽略的三级指标名称列表
         ignore_name_list = [
             "企业披露的碳排放量涵盖了组织边界和运营边界以内的总排放量",
@@ -228,7 +229,7 @@ class PdfAnalyst():
             "碳信息披露时间（随年报披露、随披露社会责任报告或可持续发展报告、单独披露碳中和报告或路线图）",
         ]
         
-        if len(keywords) == 0:
+        if len(keywords_1) == 0:
             return "", ""
         if name in ignore_name_list:
             return "", ""
@@ -237,7 +238,7 @@ class PdfAnalyst():
             pno_paragraphs = get_paragraphs_with_keywords_precisely(
                 self.pdf.document_info, ["致辞", "高管致辞", "董事长致辞", "管理层致辞"], sentence_number=30)
             # 段落中含有碳、气候、节能、能源的句子
-            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候", "节能", "能源"])
+            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候", "节能", "能源"], keywords_2=[])
             sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             content = "\n".join(sentences) # 拼接成字符串
             score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
@@ -248,7 +249,7 @@ class PdfAnalyst():
             pno_paragraphs = get_paragraphs_with_keywords_precisely(
                 self.pdf.document_info, ["风险"], sentence_number=5)
             # 段落中含有管理机制、制度、流程、整体、气候变化、能源的句子
-            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["管理机制", "制度", "流程", "整体", "气候变化", "能源"])
+            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["管理机制", "制度", "流程", "整体", "气候变化", "能源"], keywords_2=[])
             sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             content = "\n".join(sentences) # 拼接成字符串
             score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
@@ -259,7 +260,7 @@ class PdfAnalyst():
             pno_paragraphs = get_paragraphs_with_keywords_precisely(
                 self.pdf.document_info, ["利益相关者"], sentence_number=5)
             # 段落中含有碳、气候变化、节能、能源的句子
-            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候变化", "节能", "能源"])
+            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候变化", "节能", "能源"], keywords_2=[])
             sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             content = "\n".join(sentences) # 拼接成字符串
             score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
@@ -272,7 +273,7 @@ class PdfAnalyst():
             # 获取去年和前年的年份
             last_year, last_last_year = str(self.year - 1), str(self.year - 2)
             # 段落中含有去年和前年的句子
-            pno_sentences = get_sentences_with_keywords(pno_paragraphs, [last_year, last_last_year])
+            pno_sentences = get_sentences_with_keywords(pno_paragraphs, [last_year, last_last_year], keywords_2=[])
             sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             content = "\n".join(sentences) # 拼接成字符串
             score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
@@ -300,15 +301,15 @@ class PdfAnalyst():
 
         else:
             # 段落中含有 关键词 的句子
-            pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords)
+            pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_1, keywords_2=[])
             sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             content = "\n".join(sentences) # 拼接成字符串
             if method == "关键词":
                 if name == "确定碳排放核算责任的运营边界（依据范围一、范围二、范围三界定）":
                     ''' 涵盖了几个范围得几分 '''
-                    range_1 = get_sentences_with_keywords(self.relevant_pno_paragraphs, ["范围一", "范畴一"])
-                    range_2 = get_sentences_with_keywords(self.relevant_pno_paragraphs, ["范围二", "范畴二"])
-                    range_3 = get_sentences_with_keywords(self.relevant_pno_paragraphs, ["范围三", "范畴三"])
+                    range_1 = get_sentences_with_keywords(self.relevant_pno_paragraphs, ["范围一", "范畴一"], keywords_2=[])
+                    range_2 = get_sentences_with_keywords(self.relevant_pno_paragraphs, ["范围二", "范畴二"], keywords_2=[])
+                    range_3 = get_sentences_with_keywords(self.relevant_pno_paragraphs, ["范围三", "范畴三"], keywords_2=[])
                     score = sum([bool(lst) for lst in (range_1, range_2, range_3)])
                     return content, score
 
@@ -406,36 +407,6 @@ class PdfAnalyst():
         score += self.w2 * indicator_level_3["图片数量"]      
         score += self.w3 * indicator_level_3["表格数量"]      
         return score
-
-    def get_table_image_count(self, document_info, keywords_1, keywords_2):
-        """
-        描述：
-            获取表格和图片数量
-        参数：
-            document_info: dict 文档信息
-            keywords_1: list 关键词
-            keywords_2: list 关键词
-        返回值：
-            table_count: int 表格数量
-            image_count: int 图片数量
-        """
-        table_count = 0
-        image_count = 0
-        founded_list  = [] # 用于存储已经匹配到的句子
-        for idx_page, page_info in enumerate(document_info):
-            content = page_info["content"] # 获取每一页的文本内容
-            content = clean_content(content) # 去除换行符、回车符、制表符、章节号
-            for (word_1, word_2) in list(product(keywords_1, keywords_2)):
-                # 如果当前页的内容中包含关键词1和关键词2，则进行下一步处理
-                if word_1 in content and word_2 in content:
-                    structure = page_info["new_structure"] # 获取每一页的结构化信息
-                    for idx_item, item in enumerate(structure):
-                        # 如果当前句子的内容中包含关键词1和关键词2，且当前句子没有被匹配过，则进行下一步处理
-                        if word_1 in item["content"]  and word_2 in content and (idx_page, idx_item) not in founded_list:
-                            founded_list.append((idx_page, idx_item))
-                            table_count += item["table_count"]
-                            image_count += item["image_count"]
-        return table_count, image_count
 
     def get_nonrepeated_sentences(self, pno_sentences):
         """
