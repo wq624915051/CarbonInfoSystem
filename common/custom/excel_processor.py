@@ -2,7 +2,7 @@ import os
 import xlrd
 import xlwt
 from common.custom.logger import my_logger
-from common.custom.keywords_processor import split_keywords_with_comma
+from common.custom.keywords_processor import preprocess_keywords
 
 
 def read_ESG_from_excel(filepath):
@@ -85,7 +85,7 @@ def read_indicators_from_excel1(filepath):
                 if thrid_dict['三级指标名称'] == "" and  row != lines-1:
                     # 如果三级指标名称为空，且不是最后一行，则跳过
                     continue
-                thrid_dict['keywords'] = split_keywords_with_comma(table.cell_value(row, col + 1))
+                thrid_dict['keywords'] = preprocess_keywords(table.cell_value(row, col + 1))
                 if table.cell_value(row, col-1) != '' and row != 1:
                     # 如果二级指标名称不为空，代表其已经跳转到下一个二级指标，则将当前二级指标打包
                     sec_dict = {}
@@ -145,7 +145,7 @@ def read_indicators_from_excel2(filepath):
                 if thrid_dict['三级指标名称'] == "" and  row != lines-1:
                     # 当前行的三级指标名称为空，且不是最后一行，跳过
                     continue
-                thrid_dict['keywords'] = split_keywords_with_comma(table.cell_value(row, col + 1))
+                thrid_dict['keywords'] = preprocess_keywords(table.cell_value(row, col + 1))
                 thrid_dict['计分方法分类（关键词+数字+字数）'] = table.cell_value(row, col + 2).strip()
                 thrid_dict['终端采分方法'] = table.cell_value(row, col + 3).strip()
                 thrid_dict['最高分'] = table.cell_value(row, col + 4)

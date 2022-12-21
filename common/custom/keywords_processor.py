@@ -1,6 +1,47 @@
 import re
 from common.custom.pdf_processor import clean_content
 
+def preprocess_keywords(keywords_str):
+    """
+    描述：
+        预处理关键词
+        把"气候、环保、碳、（政策风险、……、出台）"的形式处理成
+        "气候、环保、碳、（政策风险）、……、（出台）"的形式
+    参数：
+        keywords_str: str 关键词
+    返回值：
+        keywords: str 关键词
+    """
+    keywords_str = keywords_str.replace("（", "(").replace("）", ")")
+    # 判断是否有括号
+    if "(" in keywords_str and ")" in keywords_str:
+        if keywords_str.count("(") == 1 and keywords_str.count(")") == 1 and keywords_str.index("(") < keywords_str.index(")"):
+            # 使用正则表达式匹配（）中的内容
+            pattern = re.compile(r"\((.*?)\)")
+            keywords_1 = pattern.findall(keywords_str)
+            if len(keywords_1) != 1:
+                raise Exception("关键词中的括号有问题")
+            
+            keywords_1 = keywords_1[0] # 获取括号中的内容
+            keywords_2 = "".join(keywords_str.split(f"({keywords_1})"))
+
+            # 把关键词用逗号分隔
+            keywords_1 = split_keywords_with_comma(keywords_1)
+            keywords_2 = split_keywords_with_comma(keywords_2)
+
+            # 把关键词用括号括起来
+            keywords_1_list = [f"({word})" for word in keywords_1.split(",")]
+            keywords_1_str = ",".join(keywords_1_list)
+            res_keywords = split_keywords_with_comma(f"{keywords_2},{keywords_1_str}")
+            return res_keywords
+        else:
+            raise Exception("关键词中的括号有问题")
+    # 如果左右括号只出现一个，则抛出异常
+    elif ("(" in keywords_str) ^ (")" in keywords_str):
+        raise Exception("关键词中的括号不匹配")
+    else:
+        return split_keywords_with_comma(keywords_str)
+
 def split_keywords_with_comma(keywords):
     """
     描述：处理关键词，把关键词用逗号分隔

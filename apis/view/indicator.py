@@ -8,7 +8,7 @@ from common.base.base_respons import retJson
 from common.custom.logger import Log, my_logger
 from common.custom.excel_processor import read_indicators_from_excel1
 from common.custom.excel_processor import read_indicators_from_excel2
-from common.custom.keywords_processor import split_keywords_with_comma
+from common.custom.keywords_processor import preprocess_keywords
 
 @csrf_exempt
 def add_indicators(request):
@@ -64,7 +64,7 @@ def add_indicators(request):
                 return retJson(code=0, msg="关键词类型需为 'file' | 'keywords'")
 
             # 处理keywords
-            keywords = split_keywords_with_comma(keywords)
+            keywords = preprocess_keywords(keywords)
 
             indicator["一级指标"] = name
             indicator["需求目的"] = name
