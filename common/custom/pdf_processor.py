@@ -51,6 +51,11 @@ class PdfProcessor():
                 page_info["content"] = clean_content(content)
                 page_info["image_count"] = len(images)
                 page_info["table_count"] = len(tables)
+                page_info["new_structure"] = [{
+                    "content": content,
+                    "image_count": len(images), # TODO 不合理
+                    "table_count": len(tables)
+                }]
             else:
                 # 有表格, 把页面保存为图片, 然后利用paddleocr进行版面分析和文字提取
                 now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
