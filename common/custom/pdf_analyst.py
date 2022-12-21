@@ -242,7 +242,7 @@ class PdfAnalyst():
             # sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             sentences = list(set([item[1].strip() for item in pno_sentences])) 
             content = "\n".join(sentences) # 拼接成字符串
-            score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
+            score = 1 if len(sentences) else 0 # 有句子则得分1分
             return content, score
 
         elif name == "是否将此类气候变化流程纳入企业的整体风险管理系统或流程":
@@ -254,7 +254,7 @@ class PdfAnalyst():
             # sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             sentences = list(set([item[1].strip() for item in pno_sentences])) 
             content = "\n".join(sentences) # 拼接成字符串
-            score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
+            score = 1 if len(sentences) else 0 # 有句子则得分1分
             return content, score
 
         elif name == "利益相关者沟通中识别了与双碳目标或低碳有关的利益相关者及其期望":
@@ -266,7 +266,7 @@ class PdfAnalyst():
             # sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             sentences = list(set([item[1].strip() for item in pno_sentences])) 
             content = "\n".join(sentences) # 拼接成字符串
-            score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
+            score = 1 if len(sentences) else 0 # 有句子则得分1分
             return content, score
 
         elif name == "采取一致的方法学对长期的碳排放情况进行比较":
@@ -280,7 +280,7 @@ class PdfAnalyst():
             # sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             sentences = list(set([item[1].strip() for item in pno_sentences])) 
             content = "\n".join(sentences) # 拼接成字符串
-            score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
+            score = 1 if len(sentences) else 0 # 有句子则得分1分
             return content, score
 
         elif name == "企业投资成本":
@@ -320,11 +320,11 @@ class PdfAnalyst():
 
                 elif name == "通过温室气体管理体系（ISO14064）认证、产品碳足迹认证（ISO 14067）、能源管理体系（ISO50001）认证、环境管理体系（ISO14001）认证的情况":
                     # 有多少句子则得分多少分，最多4分
-                    score = len(pno_sentences) if len(pno_sentences)<=4 else 4 
+                    score = len(sentences) if len(sentences)<=4 else 4 
                     return content, score
 
                 else:
-                    score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
+                    score = 1 if len(sentences) else 0 # 有句子则得分1分
                     return content, score
 
             elif method == "关键词+数字":
@@ -335,9 +335,9 @@ class PdfAnalyst():
                 digital = re.findall(r"\d+\.?\d*", content)
                 if digital:
                     score = 3
-                elif len(pno_sentences) and len(content) > 100:
+                elif len(sentences) and len(content) > 100:
                     score = 2
-                elif len(pno_sentences) and len(content) > 0:
+                elif len(sentences) and len(content) > 0:
                     score = 1
                 else:
                     score = 0
