@@ -167,7 +167,6 @@ def read_indicators_from_excel2(filepath):
                     second_list.append(sec_dict)
                 else:
                     thrid_list.append(thrid_dict)
-                # TODO 注释
                 if (table.cell_value(row, col-2) != '' and row != 1) or row == lines-1:
                     # 判断当前行前2个单元格(一级指标)是否为空，或者当前行是否是最后一行，若是，则这个一级指标结束
                     first_dic = {}
