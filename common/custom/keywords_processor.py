@@ -22,7 +22,7 @@ def preprocess_keywords(keywords_str):
             pattern = re.compile(r"\((.*?)\)")
             keywords_1 = pattern.findall(keywords_str)
             if len(keywords_1) != 1:
-                raise Exception("关键词中的括号有问题")
+                raise Exception(f"关键词 {keywords_str} 中的括号有问题")
             
             keywords_1 = keywords_1[0] # 获取括号中的内容
             keywords_2 = "".join(keywords_str.split(f"({keywords_1})"))
@@ -37,10 +37,10 @@ def preprocess_keywords(keywords_str):
             res_keywords = split_keywords_with_comma(f"{keywords_2},{keywords_1_str}")
             return res_keywords
         else:
-            raise Exception("关键词中的括号有问题")
+                raise Exception(f"关键词 {keywords_str} 中的括号有问题")
     # 如果左右括号只出现一个，则抛出异常
     elif ("(" in keywords_str) ^ (")" in keywords_str):
-        raise Exception("关键词中的括号不匹配")
+        raise Exception(f"关键词 {keywords_str} 中的括号不匹配")
     else:
         return split_keywords_with_comma(keywords_str)
 
