@@ -1,4 +1,5 @@
 import re
+from common.custom.pdf_processor import clean_content
 
 def split_keywords_with_comma(keywords):
     """
@@ -36,8 +37,7 @@ def get_paragraphs_with_keywords(document_info, keywords):
 
     for idx, page_info in enumerate(document_info):
         content = page_info["content"] # 获取每一页的文本内容
-        # 去除换行符、回车符、制表符
-        content = content.replace('\n', '').replace('\r', '').replace('\t', '')
+        content = clean_content(content) # 去除换行符、回车符、制表符、章节号
         for word in keywords:
             if word in content:
                 result.append((page_info["pno"], content))
@@ -59,8 +59,7 @@ def get_paragraphs_with_keywords_precisely(document_info, keywords, sentence_num
     result = [] # 保存结果(pno, paragraph)
     for idx_page, page_info in enumerate(document_info):
         content = page_info["content"] # 获取每一页的文本内容
-        # 去除换行符、回车符、制表符
-        content = content.replace('\n', '').replace('\r', '').replace('\t', '')
+        content = clean_content(content) # 去除换行符、回车符、制表符、章节号
         for word in keywords:
             # 如果当前页的内容中包含关键词，则进行下一步处理
             if word in content:
@@ -81,7 +80,7 @@ def get_paragraphs_with_keywords_precisely(document_info, keywords, sentence_num
                             if idx_page > 0:
                                 previous_page_info = document_info[idx_page - 1] # 上一页的信息
                                 previous_content = previous_page_info["content"] # 上一页的文本内容
-                                previous_content = previous_content.replace('\n', '').replace('\r', '').replace('\t', '')
+                                previous_content = clean_content(previous_content)
                                 previous_sentences = re.findall(pattern, previous_content) # 上一页的所有句子
                                 previous_sentences = previous_sentences[-previous_sentences_num:] # 从上一页的末尾n个开始
                             start = 0 # 从当前页的第一句开始
@@ -90,7 +89,7 @@ def get_paragraphs_with_keywords_precisely(document_info, keywords, sentence_num
                             if idx_page < len(document_info) - 1:
                                 next_page_info = document_info[idx_page + 1] # 下一页的信息
                                 next_content = next_page_info["content"] # 下一页的文本内容
-                                next_content = next_content.replace('\n', '').replace('\r', '').replace('\t', '')
+                                next_content = clean_content(next_content)
                                 next_sentences = re.findall(pattern, next_content) # 下一页的所有句子
                                 next_sentences = next_sentences[:next_sentences_num] # 从下一页的开头n个开始
                             end = len(sentences) # 到当前页的最后一句结束

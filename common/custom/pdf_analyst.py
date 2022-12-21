@@ -9,7 +9,7 @@ from itertools import product
 
 from django.conf import settings
 from common.base.base_respons import retJson
-from common.custom.pdf_processor import PdfProcessor
+from common.custom.pdf_processor import PdfProcessor, clean_content
 from common.custom.excel_processor import write_indicators_to_excel1
 from common.custom.excel_processor import write_indicators_to_excel2
 from common.custom.excel_processor import read_ESG_from_excel
@@ -421,8 +421,7 @@ class PdfAnalyst():
         founded_list  = [] # 用于存储已经匹配到的句子
         for idx_page, page_info in enumerate(document_info):
             content = page_info["content"] # 获取每一页的文本内容
-            # 去除换行符、回车符、制表符
-            content = content.replace('\n', '').replace('\r', '').replace('\t', '')
+            content = clean_content(content) # 去除换行符、回车符、制表符、章节号
             for (word_1, word_2) in list(product(keywords_1, keywords_2)):
                 # 如果当前页的内容中包含关键词1和关键词2，则进行下一步处理
                 if word_1 in content and word_2 in content:

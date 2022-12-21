@@ -3,7 +3,10 @@ PdfProcessor类
 用于提取PDF文件中的文本、表格、图片等信息
 '''
 import os
+import re
 import fitz
+import datetime
+import pdfplumber
 import numpy as np
 from common.custom.ocr import MyOCR
 
@@ -26,6 +29,7 @@ class PdfProcessor():
     def __init__(self, filepath, media_root) -> None:
         self.filepath = filepath # PDF文件路径
         self.documnet = fitz.open(filepath) # PyMuPdf打开PDF文件
+        self.pdfplumber = pdfplumber.open(filepath) # pdfplumber打开PDF文件
         self.media_root = media_root # 保存图片的路径
         self.pdf_ocr = MyOCR()
         self.zoom_x = 2.0 # 缩放比例
@@ -35,23 +39,41 @@ class PdfProcessor():
         self.document_info = [] # PDF每一页的信息
         for pno, page in enumerate(self.documnet):
             page_info = {"pno": pno} # 页面信息
+            
+            """
+            TODO
+            使用pdfplumber获取页面的图片和表格的数量
+            如果有表格，就把页面保存为图片，然后利用paddleocr进行版面分析和文字提取
+            如果没有表格，直接利用pdfplumber或者PyMuPdf获取页面的文本内容
+            """
+            # 通过pdfplumber获取图片和表格的数量
+            pdfplumber_page = self.pdfplumber.pages[pno]
+            images = pdfplumber_page.images # 获取图片
+            tables = pdfplumber_page.extract_tables() # 获取表格
+            if len(tables) == 0:
+                # 没有表格,直接获取文本内容
+                content = page.get_text("text") # 页面内容
+                page_info["content"] = clean_content(content)
+                page_info["image_count"] = len(images)
+                page_info["table_count"] = len(tables)
+            else:
+                # 有表格, 把页面保存为图片, 然后利用paddleocr进行版面分析和文字提取
+                now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+                img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}_{now}.png")
+                page.get_pixmap(matrix=self.mat).save(img_save_path) 
 
-            # 把页面保存为图片
-            img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}.png")
-            page.get_pixmap(matrix=self.mat).save(img_save_path) 
-
-            # 利用paddleocr进行版面分析和文字提取
-            structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
-            page_info["content"] = self.get_content(structure) # 页面内容
-            page_info["image_count"] = self.get_image_count(structure) # 图片数量
-            page_info["table_count"] = self.get_table_count(structure) # 表格数量
-            page_info["new_structure"] = self.get_image_table_count(structure) # 每一块下方的图片数量和表格数量
+                # 利用paddleocr进行版面分析和文字提取
+                structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
+                page_info["content"] = self.get_content_by_paddleocr(structure) # 页面内容
+                page_info["image_count"] = self.get_image_count(structure) # 图片数量
+                page_info["table_count"] = self.get_table_count(structure) # 表格数量
+                page_info["new_structure"] = self.get_image_table_count(structure) # 每一块下方的图片数量和表格数量
 
             self.document_info.append(page_info) # 添加到文档信息中
         
         self.delete_images(os.path.join(self.media_root, 'temp_images')) # 删除临时图片
 
-    def get_content(self, structure):
+    def get_content_by_paddleocr(self, structure):
         """
         描述：获取文本内容
         参数：
@@ -64,6 +86,7 @@ class PdfProcessor():
             if item["type"] == "text":
                 for line in item["res"]:
                     content += line["text"]
+        content = clean_content(content)
         return content
 
     def get_image_count(self, structure):
@@ -157,3 +180,18 @@ class PdfProcessor():
                 continue
             else:
                 os.remove(os.path.join(del_path, file))
+
+def clean_content(content):
+    """
+    描述：
+        从文本中去除换行符、回车符、制表符、章节号
+    参数：
+        content: 文本内容
+    返回值：    
+        content: 处理后的文本内容
+    """
+    # 去除换行符、回车符、制表符
+    content = content.replace('\n', '').replace('\r', '').replace('\t', '')
+    # 去除所有章节号，例如4.3.1
+    content = re.sub(r"\d+\.?\d*\.\d+\.?\d*\.\d+\.?\d*","", content)
+    return content
