@@ -65,6 +65,10 @@ def split_keywords(keywords):
     # 第二类关键词, 并去除括号
     keywords_2 = [item.replace('(', '').replace(')', '') for item in keyword_list if '(' in item]
 
+    # 去除空字符串
+    keywords_1 = [keyword.strip() for keyword in keywords_1 if keyword != '']
+    keywords_2 = [keyword.strip() for keyword in keywords_2 if keyword != '']
+
     return keywords_1, keywords_2
 
 def split_keywords_with_comma(keywords):
@@ -218,7 +222,7 @@ def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3):
     for idx_page, page_info in enumerate(document_info):
         content = page_info["content"] # 获取每一页的文本内容
         content = clean_content(content) # 去除换行符、回车符、制表符、章节号
-        for (word_1, word_2, word_3) in list(product(keywords_1, keywords_2)):
+        for (word_1, word_2, word_3) in list(product(keywords_1, keywords_2, keywords_3)):
             # 如果当前页的内容中包含关键词1和关键词2，则进行下一步处理
             if word_1 in content and word_2 in content and word_3 in content:
                 structure = page_info["new_structure"] # 获取每一页的结构化信息

@@ -182,7 +182,7 @@ class PdfAnalyst():
             # 段落中含有碳、环保、绿色的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, self.keywords_normal, keywords_2=[])
             # 获取表格和图片数量
-            table_count, image_count = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_special, keywords_2=[])
+            table_count, image_count = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_special, keywords_3=[])
         elif name == "减少的二氧化碳降低百分比":
             # 段落中含有 关键词 的句子
             keywords_1.append("二氧化碳排放下降")
@@ -191,7 +191,7 @@ class PdfAnalyst():
             # 段落中含有 关键词 的句子
             pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_1, keywords_2=[])
             # 获取表格和图片数量
-            table_count, image_count = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_1, keywords_2=[])
+            table_count, image_count = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_1, keywords_3=[])
         else:
             # 段落中含有 关键词 的句子
             pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_1, keywords_2)
