@@ -39,20 +39,15 @@ class PdfProcessor():
         self.document_info = [] # PDF每一页的信息
         for pno, page in enumerate(self.documnet):
             page_info = {"pno": pno} # 页面信息
-            
-            """
-            TODO
-            使用pdfplumber获取页面的图片和表格的数量
-            如果有表格，就把页面保存为图片，然后利用paddleocr进行版面分析和文字提取
-            如果没有表格，直接利用pdfplumber或者PyMuPdf获取页面的文本内容
-            """
+
             # 通过pdfplumber获取图片和表格的数量
             pdfplumber_page = self.pdfplumber.pages[pno]
             images = pdfplumber_page.images # 获取图片
             tables = pdfplumber_page.extract_tables() # 获取表格
             if len(tables) == 0:
                 # 没有表格,直接获取文本内容
-                content = page.get_text("text") # 页面内容
+                content = page.get_text("text") # 使用PyMuPdf提取文字
+                content = pdfplumber_page.extract_text() # 使用pdfplumber提取文字
                 page_info["content"] = clean_content(content)
                 page_info["image_count"] = len(images)
                 page_info["table_count"] = len(tables)
@@ -191,7 +186,8 @@ def clean_content(content):
         content: 处理后的文本内容
     """
     # 去除换行符、回车符、制表符
-    content = content.replace('\n', '').replace('\r', '').replace('\t', '')
+    content = content.replace('\n', '').replace('\r', '')
+    content = content.replace('\t', '').replace(' ', '')
     # 去除所有章节号，例如4.3.1
     content = re.sub(r"\d+\.?\d*\.\d+\.?\d*\.\d+\.?\d*","", content)
     return content
