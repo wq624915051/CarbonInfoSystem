@@ -85,6 +85,9 @@ class PdfAnalyst():
         # 初始化结果
         self.result = {}
 
+        # 记录句子出现的次数
+        self.sentence_count_dict = {}
+
         # 获取公司股票代码、名字、年份
         self.company_code, self.company_name, self.year = self.get_company_code_name_year()
         self.result["company_code"] = self.company_code
@@ -195,7 +198,7 @@ class PdfAnalyst():
             # 获取表格和图片数量
             table_count, image_count = self.get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords)
         
-        sentences = list(set([item[1].strip() for item in pno_sentences])) # 获取句子列表, 并去重
+        sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
         content = "\n".join(sentences) # 拼接成字符串
 
         pno_list = [item[0] for item in pno_sentences] # 句子所在的页码
@@ -235,7 +238,7 @@ class PdfAnalyst():
                 self.pdf.document_info, ["致辞", "高管致辞", "董事长致辞", "管理层致辞"], sentence_number=30)
             # 段落中含有碳、气候、节能、能源的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候", "节能", "能源"])
-            sentences = [item[1] for item in pno_sentences] # 句子列表
+            sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             content = "\n".join(sentences) # 拼接成字符串
             score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
             return content, score
@@ -246,7 +249,7 @@ class PdfAnalyst():
                 self.pdf.document_info, ["风险"], sentence_number=5)
             # 段落中含有管理机制、制度、流程、整体、气候变化、能源的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["管理机制", "制度", "流程", "整体", "气候变化", "能源"])
-            sentences = [item[1] for item in pno_sentences] # 句子列表
+            sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             content = "\n".join(sentences) # 拼接成字符串
             score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
             return content, score
@@ -257,7 +260,7 @@ class PdfAnalyst():
                 self.pdf.document_info, ["利益相关者"], sentence_number=5)
             # 段落中含有碳、气候变化、节能、能源的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候变化", "节能", "能源"])
-            sentences = [item[1] for item in pno_sentences] # 句子列表
+            sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             content = "\n".join(sentences) # 拼接成字符串
             score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
             return content, score
@@ -270,7 +273,7 @@ class PdfAnalyst():
             last_year, last_last_year = str(self.year - 1), str(self.year - 2)
             # 段落中含有去年和前年的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, [last_year, last_last_year])
-            sentences = [item[1] for item in pno_sentences] # 句子列表
+            sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             content = "\n".join(sentences) # 拼接成字符串
             score = 1 if len(pno_sentences) else 0 # 有句子则得分1分
             return content, score
@@ -298,7 +301,7 @@ class PdfAnalyst():
         else:
             # 段落中含有 关键词 的句子
             pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords)
-            sentences = [item[1] for item in pno_sentences] # 句子列表
+            sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             content = "\n".join(sentences) # 拼接成字符串
             if method == "关键词":
                 if name == "确定碳排放核算责任的运营边界（依据范围一、范围二、范围三界定）":
@@ -433,6 +436,29 @@ class PdfAnalyst():
                             table_count += item["table_count"]
                             image_count += item["image_count"]
         return table_count, image_count
+
+    def get_nonrepeated_sentences(self, pno_sentences):
+        """
+        描述:   
+            检查sentences中的句子是否在self.sentence_count_dict中出现
+            如果出现过，就不再添加到nonrepeated_sentences中
+            如果没有出现过，就添加到nonrepeated_sentences中，并且在self.sentence_count_dict中添加该句子
+        参数：
+            sentences: list 句子列表
+        返回值：        
+            nonrepeated_sentences: list 不重复的句子列表
+        """
+        # 去重
+        sentences = list(set([item[1].strip() for item in pno_sentences]))
+        
+        nonrepeated_sentences = []
+        for sentence in sentences:
+            if sentence in self.sentence_count_dict.keys():
+                self.sentence_count_dict[sentence] += 1
+            else:
+                self.sentence_count_dict[sentence] = 1
+                nonrepeated_sentences.append(sentence)
+        return nonrepeated_sentences
         
 
 if __name__ == "__main__":
