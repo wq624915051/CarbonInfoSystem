@@ -86,7 +86,7 @@ def calculate(request):
             files_indicators = []
             for filepath in filepaths:
                 analysis_pdf = PdfAnalyst(filepath, indicators, systemId, w1, w2, w3, excel_base_path)
-                files_indicators.append(analysis_pdf.result)
+                files_indicators.append(analysis_pdf.result) # 将每个PDF文件的分析结果添加到files_indicators中
                 my_logger.info(f"文件 {filepath} 分析计算成功")
 
             # 返回结果

@@ -38,7 +38,7 @@ class PdfAnalyst():
         self.w1 = w1
         self.w2 = w2
         self.w3 = w3
-        self.excel_base_path = excel_base_path
+        self.excel_base_path = excel_base_path # excel文件存放路径
         self.date = datetime.datetime.now().strftime('%Y%m%d')
 
         self.pdf = PdfProcessor(self.filepath, media_root=settings.MEDIA_ROOT) # 提取PDF内容存储到self.pdf.document_info
@@ -108,7 +108,7 @@ class PdfAnalyst():
                     if self.systemId == 1:
                         # 筛选含有碳、环保、绿色的相关段落
                         self.relevant_pno_paragraphs = get_paragraphs_with_keywords_precisely(
-                            self.pdf.document_info, self.keywords_normal, sentence_number=7)
+                            self.pdf.document_info, self.keywords_normal, sentence_number=5)
                         # 根据关键词进行分析
                         content, image_count, table_count, sentences_count = self.analysis_with_keywords_system1(indicator_level_3_name, indicator_level_3_keywords)
                         indicator_level_3["文字内容"] = content
@@ -128,7 +128,7 @@ class PdfAnalyst():
                             indicator_level_3_method = "关键词"
                         # 筛选含有绿色 碳 温室气体 环保 能源的相关段落
                         self.relevant_pno_paragraphs = get_paragraphs_with_keywords_precisely(
-                            self.pdf.document_info, ["绿色", "碳", "温室气体", "环保", "能源"], sentence_number=7)
+                            self.pdf.document_info, ["绿色", "碳", "温室气体", "环保", "能源"], sentence_number=5)
                         # 根据关键词进行分析
                         content, score = self.analysis_with_keywords_system2(
                             indicator_level_3_name, indicator_level_3_keyword, indicator_level_3_method)
@@ -175,7 +175,7 @@ class PdfAnalyst():
             # 获取高管致辞段落
             keywords_special = ["致辞", "高管致辞", "董事长致辞", "董事长"]
             pno_paragraphs = get_paragraphs_with_keywords_precisely(
-                self.pdf.document_info, keywords_special, sentence_number=20)
+                self.pdf.document_info, keywords_special, sentence_number=30)
             # 段落中含有碳、环保、绿色的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, self.keywords_normal)
             # 获取表格和图片数量
@@ -232,7 +232,7 @@ class PdfAnalyst():
         if name == "高管有关双碳目标或碳减排的声明与承诺":
             # 获取高管致辞段落
             pno_paragraphs = get_paragraphs_with_keywords_precisely(
-                self.pdf.document_info, ["致辞", "高管致辞", "董事长致辞", "管理层致辞"], sentence_number=10)
+                self.pdf.document_info, ["致辞", "高管致辞", "董事长致辞", "管理层致辞"], sentence_number=30)
             # 段落中含有碳、气候、节能、能源的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候", "节能", "能源"])
             sentences = [item[1] for item in pno_sentences] # 句子列表
@@ -243,7 +243,7 @@ class PdfAnalyst():
         elif name == "是否将此类气候变化流程纳入企业的整体风险管理系统或流程":
             # 获取“风险”段落
             pno_paragraphs = get_paragraphs_with_keywords_precisely(
-                self.pdf.document_info, ["风险"], sentence_number=7)
+                self.pdf.document_info, ["风险"], sentence_number=5)
             # 段落中含有管理机制、制度、流程、整体、气候变化、能源的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["管理机制", "制度", "流程", "整体", "气候变化", "能源"])
             sentences = [item[1] for item in pno_sentences] # 句子列表
@@ -254,7 +254,7 @@ class PdfAnalyst():
         elif name == "利益相关者沟通中识别了与双碳目标或低碳有关的利益相关者及其期望":
             # 获取“利益相关者”段落
             pno_paragraphs = get_paragraphs_with_keywords_precisely(
-                self.pdf.document_info, ["利益相关者"], sentence_number=7)
+                self.pdf.document_info, ["利益相关者"], sentence_number=5)
             # 段落中含有碳、气候变化、节能、能源的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候变化", "节能", "能源"])
             sentences = [item[1] for item in pno_sentences] # 句子列表
@@ -265,7 +265,7 @@ class PdfAnalyst():
         elif name == "采取一致的方法学对长期的碳排放情况进行比较":
             # 获取“碳排放”段落
             pno_paragraphs = get_paragraphs_with_keywords_precisely(
-                self.pdf.document_info, ["碳排放"], sentence_number=7)
+                self.pdf.document_info, ["碳排放"], sentence_number=5)
             # 获取去年和前年的年份
             last_year, last_last_year = str(self.year - 1), str(self.year - 2)
             # 段落中含有去年和前年的句子
