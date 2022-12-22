@@ -13,7 +13,7 @@ docker run -dp PORT:10086 -v PATH2FILE:/code carbon_info_system
 ```
 
 ## 文档整理
-1. pdf文件命名
+1. pdf文件命名 （股票代码得是6位数字）
 2. Excel的格式为.xls
 3. 指标的关键词的格式
 4. 碳中和系统的“关键词+数字”手动
