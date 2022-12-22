@@ -337,8 +337,8 @@ class PdfAnalyst():
 
             elif method == "关键词+数字+字数":
                 ''' 定量描述，赋值为3；详细定性，赋值为2；简单定性，赋值为1；无描述，赋值为0 '''
-                digital = re.findall(r"\d+\.?\d*", content)
-                if digital:
+                number_count = self.get_number_count(content)
+                if number_count:
                     score = 3
                 elif len(sentences) and len(content) > 100:
                     score = 2
@@ -373,20 +373,38 @@ class PdfAnalyst():
         return sum(count_list)
 
     def get_number_count(self, content):
+        """
+        描述：统计数字数量
+        参数：
+            content: string 文本内容
+        返回值：    
+            count: int 数字数量
+        """
+        # 去除无用数字
+        content = self.remove_useless_number(content)
         # 匹配所有数字
         numbers = re.findall(r"\d+\.?\d*", content)
-        # 匹配以ISO开头的数字
-        numbers_ISO = re.findall(r"ISO(\d+\.?\d*)",content)
-        # 匹配所有年份
-        years = re.findall(r"(19\d{2}|20\d{2})", content)
-        # 匹配所有日期 yyyy-./mm-./dd, mm-./dd-./yyyy
-        dates = re.findall("\d{4}[-|.|/]?\d{2}[-|.|/]?\d{2}|\d{2}[-|.|/]?\d{2}[-|.|/]?\d{4}", content)
-        # 匹配所有章节号，例如4.3.1
-        chapters = re.findall(r"\d+\.?\d*\.\d+\.?\d*\.\d+\.?\d*", content)
+        return len(numbers)   
 
-        # 去除年份和日期章节号后，剩余的数字就是最终结果
-        result = [n for n in numbers if n not in numbers_ISO and all(n not in d for d in dates + years + chapters)]
-        return len(result)     
+    def remove_useless_number(self, content):
+        '''
+        描述：去除无用的数字
+        参数：
+            content: string 文本内容
+        返回值：
+            content: string 去除无用数字后的文本内容
+        '''
+        # TODO 需要完善
+        # 去除所有年份
+        content = re.sub(r"(19\d{2}|20\d{2})", "", content)
+        # TODO 感觉去除日期的都可以单独写个函数了, 乐
+        # 去除所有日期 yyyy-./mm-./dd, mm-./dd-./yyyy
+        content = re.sub("\d{4}[-|.|/]?\d{2}[-|.|/]?\d{2}|\d{2}[-|.|/]?\d{2}[-|.|/]?\d{4}", "", content)
+        # 去除所有ISO开头的数字
+        content = re.sub(r"ISO(\d+\.?\d*)", "", content)
+        # 去除所有章节号，例如4.3.1
+        content = re.sub(r"\d+\.?\d*\.\d+\.?\d*\.\d+\.?\d*", "", content)
+        return content  
 
     def text_quality(self, indicator_level_3):
         '''
