@@ -17,7 +17,7 @@ def calculate(request):
     方法：POST
     参数：
         indicators: list[dict] 指标列表
-        filepaths: list[string] pdf文件路径列表
+        file: list[{"filepath": "", "pno_start": 1, "pno_end": 3}] pdf文件列表
         system: int 系统ID
         w1: int 贡献度1
         w2: int 贡献度2
@@ -58,14 +58,18 @@ def calculate(request):
             # 获取参数
             received_json_data = json.loads(request.body.decode().replace("'", "\""))
             indicators = received_json_data.get('indicators')
-            filepaths = received_json_data.get('filepaths')
+            files = received_json_data.get('files')
             systemId = int(received_json_data.get('system'))
             w1 = float(received_json_data.get('w1'))
             w2 = float(received_json_data.get('w2'))
             w3 = float(received_json_data.get('w3'))
 
+            
             # 判断filepaths中的文件是否存在
-            for filepath in filepaths:
+            for file in files:
+                filepath = file["filepath"]
+                pno_start = file["pno_start"]
+                pno_end = file["pno_end"]
                 if not os.path.exists(filepath):
                     my_logger.error(f"文件 {filepath} 不存在")
                     return retJson(code=0, msg=f"文件 {filepath} 不存在")
@@ -84,8 +88,15 @@ def calculate(request):
 
             # 遍历每个PDF文件，进行分析计算
             files_indicators = []
-            for filepath in filepaths:
-                analysis_pdf = PdfAnalyst(filepath, indicators, systemId, w1, w2, w3, excel_base_path)
+            for file in files:
+                # 错误处理
+                for key in ["filepath", "pno_start", "pno_end"]:
+                    if key not in file:
+                        my_logger.error(f"文件 {filepath} 参数错误： {key} 不存在")
+                        return retJson(code=0, msg=f"文件 {filepath} 参数错误： {key} 不存在")
+                
+                filepath = file["filepath"]
+                analysis_pdf = PdfAnalyst(file, indicators, systemId, w1, w2, w3, excel_base_path)
                 files_indicators.append(analysis_pdf.result) # 将每个PDF文件的分析结果添加到files_indicators中
                 my_logger.info(f"文件 {filepath} 分析计算成功")
 

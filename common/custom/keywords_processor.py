@@ -114,6 +114,36 @@ def get_paragraphs_with_keywords(document_info, keywords):
     result = list(set(result)) # 去重
     return result
 
+def get_management_speech_paragraphs(document_info, pno_start, pno_end):
+    """
+    描述: 
+        获取document_info中[pno_start: pno_end]的页面的文本内容
+        pno_start, pno_end是1开始计数的左闭右闭区间
+        因此需要转换为[pno_start-1: pno_end]
+    参数:
+        document_info: 文档信息
+        pno_start: 起始页码
+        pno_end: 结束页码
+    返回值:
+        result: List[(段落所在的页码, 段落文本内容)]
+    """
+    if pno_start < 1:
+        raise ValueError("pno_start can not less than 1")
+
+    if pno_start > pno_end:
+        raise ValueError("pno_start can not large than pno_end")
+    
+    if pno_end > len(document_info):
+        raise ValueError("pno_end can not large than pdf page length")
+
+    result = [] # 保存结果(pno, paragraph)
+    for page_info in document_info[pno_start-1: pno_end]:
+        content = page_info["content"] # 获取每一页的文本内容
+        content = clean_content(content) # 去除换行符、回车符、制表符、章节号
+        result.append((page_info["pno"], content))
+    result = list(set(result)) # 去重
+    return result
+
 def get_paragraphs_with_keywords_precisely(document_info, keywords, sentence_number=5):
     """
     描述: 

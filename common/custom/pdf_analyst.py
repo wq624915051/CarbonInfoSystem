@@ -18,6 +18,7 @@ from common.custom.keywords_processor import get_table_image_count
 from common.custom.keywords_processor import get_paragraphs_with_keywords
 from common.custom.keywords_processor import get_paragraphs_with_keywords_precisely
 from common.custom.keywords_processor import get_sentences_with_keywords
+from common.custom.keywords_processor import get_management_speech_paragraphs
 
 class PdfAnalyst():
     '''
@@ -32,14 +33,18 @@ class PdfAnalyst():
         excel_base_path: string excel文件存放路径
     '''
 
-    def __init__(self, filepath, indicators, systemId, w1, w2, w3, excel_base_path) -> None:
-        self.filepath = filepath
+    def __init__(self, file, indicators, systemId, w1, w2, w3, excel_base_path) -> None:
+        self.file = file
         self.indicators = indicators
         self.systemId = systemId
         self.w1 = w1
         self.w2 = w2
         self.w3 = w3
         self.excel_base_path = excel_base_path # excel文件存放路径
+
+        self.filepath = self.file["filepath"] # pdf文件路径
+        self.pno_start = int(self.file["pno_start"]) # 高管致辞开始页码
+        self.pno_end = int(self.file["pno_end"]) # 高管致辞结束页码
         self.date = datetime.datetime.now().strftime('%Y%m%d')
 
         self.pdf = PdfProcessor(self.filepath, media_root=settings.MEDIA_ROOT) # 提取PDF内容存储到self.pdf.document_info
@@ -177,8 +182,8 @@ class PdfAnalyst():
         if name == "高管致辞":
             # 获取高管致辞段落
             keywords_special = ["致辞", "高管致辞", "董事长致辞", "董事长"]
-            pno_paragraphs = get_paragraphs_with_keywords_precisely(
-                self.pdf.document_info, keywords_special, sentence_number=30)
+            # pno_paragraphs = get_paragraphs_with_keywords_precisely(self.pdf.document_info, keywords_special, sentence_number=30)
+            pno_paragraphs = get_management_speech_paragraphs(self.pdf.document_info, self.pno_start, self.pno_end)
             # 段落中含有碳、环保、绿色的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, self.keywords_normal, keywords_2=[])
             # 获取表格和图片数量
@@ -235,8 +240,8 @@ class PdfAnalyst():
             return "", ""
         if name == "高管有关双碳目标或碳减排的声明与承诺":
             # 获取高管致辞段落
-            pno_paragraphs = get_paragraphs_with_keywords_precisely(
-                self.pdf.document_info, ["致辞", "高管致辞", "董事长致辞", "管理层致辞"], sentence_number=30)
+            # pno_paragraphs = get_paragraphs_with_keywords_precisely(self.pdf.document_info, ["致辞", "高管致辞", "董事长致辞", "管理层致辞"], sentence_number=30)
+            pno_paragraphs = get_management_speech_paragraphs(self.pdf.document_info, self.pno_start, self.pno_end)
             # 段落中含有碳、气候、节能、能源的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候", "节能", "能源"], keywords_2=[])
             # sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
