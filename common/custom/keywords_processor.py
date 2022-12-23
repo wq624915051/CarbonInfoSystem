@@ -127,6 +127,12 @@ def get_management_speech_paragraphs(document_info, pno_start, pno_end):
     返回值:
         result: List[(段落所在的页码, 段落文本内容)]
     """
+    if pno_start.strip() == "" and pno_end.strip() == "":
+        return [] # 没有高管致辞内容
+    
+    # 转换为整数
+    pno_start, pno_end = int(pno_start), int(pno_end)
+
     if pno_start < 1:
         raise ValueError("pno_start can not less than 1")
 

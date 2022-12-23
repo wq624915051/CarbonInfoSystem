@@ -43,8 +43,8 @@ class PdfAnalyst():
         self.excel_base_path = excel_base_path # excel文件存放路径
 
         self.filepath = self.file["filepath"] # pdf文件路径
-        self.pno_start = int(self.file["pno_start"]) # 高管致辞开始页码
-        self.pno_end = int(self.file["pno_end"]) # 高管致辞结束页码
+        self.pno_start = self.file["pno_start"] # 高管致辞开始页码
+        self.pno_end = self.file["pno_end"] # 高管致辞结束页码
         self.date = datetime.datetime.now().strftime('%Y%m%d')
 
         self.pdf = PdfProcessor(self.filepath, media_root=settings.MEDIA_ROOT) # 提取PDF内容存储到self.pdf.document_info
