@@ -55,6 +55,9 @@ def calculate(request):
 
     if request.method == 'POST':
         try:
+            # 计算耗时
+            start_time = datetime.datetime.now()
+            
             # 获取参数
             received_json_data = json.loads(request.body.decode().replace("'", "\""))
             indicators = received_json_data.get('indicators')
@@ -99,6 +102,11 @@ def calculate(request):
                 analysis_pdf = PdfAnalyst(file, indicators, systemId, w1, w2, w3, excel_base_path)
                 files_indicators.append(analysis_pdf.result) # 将每个PDF文件的分析结果添加到files_indicators中
                 my_logger.info(f"文件 {filepath} 分析计算成功")
+
+            # 计算耗时(分钟)
+            end_time = datetime.datetime.now()
+            cost_time = (end_time - start_time).seconds / 60
+            my_logger.info(f"计算耗时：{cost_time} 分钟")
 
             # 返回结果
             my_logger.info(f"计算成功")
