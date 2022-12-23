@@ -1,4 +1,5 @@
 import re
+import jieba
 from itertools import product
 
 from common.custom.pdf_processor import clean_content
@@ -226,7 +227,8 @@ def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2):
         sentences = re.findall(pattern, paragraph)
         for sentence in sentences:
             for (word_1, word_2) in list(product(keywords_1, keywords_2)):
-                if word_1 in sentence and word_2 in sentence:
+                words = jieba.cut_for_search(sentence)
+                if word_1 in words and word_2 in words:
                     sentence = sentence.strip() # 去除首尾空格
                     result_sentences.append((pno, sentence))
 

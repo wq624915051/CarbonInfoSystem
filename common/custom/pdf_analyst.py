@@ -397,16 +397,24 @@ class PdfAnalyst():
         '''
         # TODO 需要完善
         # 去除所有年份
-        content = re.sub(r"(19\d{2}|20\d{2})", "", content)
+        content = re.sub(r"(19\d{2}|20\d{2})年", "", content)
+        content = re.sub(r"([1-12])月", "", content)
+        content = re.sub(r"([1-30])日", "", content)
+        content = re.sub(r"([1-30])号", "", content)
         # TODO 感觉去除日期的都可以单独写个函数了, 乐
         # 去除所有日期 yyyy-./mm-./dd, mm-./dd-./yyyy
-        content = re.sub("\d{4}[-|.|/]?\d{2}[-|.|/]?\d{2}|\d{2}[-|.|/]?\d{2}[-|.|/]?\d{4}", "", content)
+        content = re.sub(r"\d{4}[-|.|/]?\d{2}[-|.|/]?\d{2}|\d{2}[-|.|/]?\d{2}[-|.|/]?\d{4}", "", content)
+        content = re.sub(r"([0-9]{4})-(0[1-9]|1[0-2])-(0[1-3]|1[0-2])", "", content)
+        content = re.sub(r"(19\d{2}|20\d{2})\-(19\d{2}|20\d{2})", "", content)
         # 去除所有ISO开头的数字
         content = re.sub(r"ISO(\d+\.?\d*)", "", content)
-        # 去除所有章节号，例如4.3.1
-        content = re.sub(r"\d+\.?\d*\.\d+\.?\d*\.\d+\.?\d*", "", content)
+        # 去除所有章节号，例如1.
+        content = re.sub(r"\d\.", "", content)
+        # 去除电话号码、邮编
+        content = re.sub(r"电话：\(\d+\)\d+", "", content)
+        content = re.sub(r"邮编：\d{7}", "", content)
+        content = re.sub(r"[\w!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}", "", content)
         return content  
-
     def text_quality(self, indicator_level_3):
         '''
         描述：
