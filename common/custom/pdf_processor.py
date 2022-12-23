@@ -56,10 +56,12 @@ class PdfProcessor():
                 now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
                 img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}_{now}.png")
                 page.get_pixmap(matrix=self.mat).save(img_save_path) 
+                self.img_save_path = img_save_path
 
-                # 利用paddleocr进行版面分析和文字提取
+                # 利用 PPStructure 进行版面分析和文字提取
                 structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
-                page_info["content"] = self.get_content_by_paddleocr(structure) # 页面内容
+                page_info["content"] = self.get_content_by_PPStructure(structure) # 页面内容 by PPStructure
+                page_info["content"] = self.get_content_by_PaddleOCR(structure) # 页面内容 by PaddleOCR [速度慢]
                 page_info["image_count"] = self.get_image_count(structure) # 图片数量
                 page_info["table_count"] = self.get_table_count(structure) # 表格数量
                 page_info["new_structure"] = self.get_image_table_count(structure) # 每一块下方的图片数量和表格数量
@@ -81,9 +83,10 @@ class PdfProcessor():
         
         self.delete_images(os.path.join(self.media_root, 'temp_images')) # 删除临时图片
 
-    def get_content_by_paddleocr(self, structure):
+    def get_content_by_PPStructure(self, structure):
         """
-        描述：获取文本内容
+        描述：
+            使用 PPStructure 获取文本内容
         参数：
             structure: 版面分析结果 List[Dict]
         返回值：
@@ -94,6 +97,31 @@ class PdfProcessor():
             if item["type"] == "text":
                 for line in item["res"]:
                     content += line["text"]
+        content = clean_content(content)
+        return content
+
+    def get_content_by_PaddleOCR(self, structure):
+        """
+        描述：
+            使用 PaddleOCR + PPStructure 获取文本内容
+            精度高，速度慢
+        参数：
+            structure: 版面分析结果 List[Dict]
+        返回值：
+            content: 文本内容
+        """
+        # 获取paddle ocr的识别结果
+        ocr_result = self.pdf_ocr.get_ocr_result(self.img_save_path)
+
+        # 获取文字部分的Bbox
+        text_bboxs = self.get_text_bboxes(structure)
+
+        content = ""
+        for line in ocr_result:
+            # 提取line的bbox, 左上x, 左上y, 右下x, 右下y
+            bbox = [line[0][0][0], line[0][0][1], line[0][2][0], line[0][2][1]]
+            if self.is_in_bboxes(bbox, text_bboxs):
+                content += line[1][0]
         content = clean_content(content)
         return content
 
@@ -175,6 +203,40 @@ class PdfProcessor():
         res_structure = [{k: item[k] for k in ["content", "image_count", "table_count"]} for item in new_structure if item["type"] == "text"]
 
         return res_structure
+
+    def get_text_bboxes(self, structure):
+        """
+        描述：获取文字的Bbox
+        参数：
+            content: 文字提取结果 List
+        返回值：    
+            bboxs: 文字的Bbox List
+            Bbox: [左上角x，左上角y，右下角x，右下角y]
+        """
+        bboxs = []
+        for line in structure:
+            if line["type"] == "text":
+                bboxs.append(line["bbox"])
+        return bboxs
+
+    def is_in_bboxes(self, bbox, bboxes, error_axis_x=5, error_axis_y=2):
+        """
+        描述：判断bbox是否在bboxes中
+        参数：
+            bbox: Bbox [左上角x，左上角y，右下角x，右下角y]
+            bboxes: Bbox List
+            error_axis_x: x轴允许误差
+            error_axis_y: y轴允许误差
+        返回值：
+            True: 在bboxes中
+            False: 不在bboxes中
+        """
+        # 添加允许误差
+        bbox = [bbox[0]+error_axis_x, bbox[1]+error_axis_y, bbox[2]-error_axis_x, bbox[3]-error_axis_y]
+        for box in bboxes:
+            if bbox[0] >= box[0] - error_axis_x and bbox[1] >= box[1] - error_axis_y and bbox[2] <= box[2] + error_axis_x and bbox[3] <= box[3] + error_axis_y:
+                return True
+        return False
 
     def delete_images(self, del_path):
         '''

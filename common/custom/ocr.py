@@ -1,7 +1,9 @@
 import os
 import sys
 import cv2
+from itertools import chain
 from paddleocr import PPStructure
+from paddleocr import PaddleOCR
 from paddleocr import draw_structure_result
 from paddleocr import save_structure_res
 
@@ -12,6 +14,7 @@ class MyOCR():
     """
     def __init__(self, table=False, ocr=True, show_log=False, image_orientation=False) -> None:
         self.pdf_engine = PPStructure(table=table, ocr=ocr, show_log=show_log, image_orientation=image_orientation)
+        self.ocr_engine = PaddleOCR(use_angle_cls=False, lang="ch")
     
     def get_structure(self, img_path):
         """
@@ -31,3 +34,18 @@ class MyOCR():
         # 根据structure的字典内的bbox的左上角y坐标，对structure进行排序
         structure.sort(key=lambda x: x["bbox"][1])
         return structure
+    
+    def get_ocr_result(self, img_path):
+        '''
+        描述：获取paddle ocr的识别结果
+        参数：
+            img_path: 图片路径
+        返回值：    
+            result: 文字提取结果 List[item]
+            item: [[[左上x, 左上y], [右上x, 右上y], [右下x, 右下y], [左下x, 左下y]], (文本, 置信度)]
+        '''
+        results = self.ocr_engine.ocr(img_path, cls=False)
+        result = list(chain(*results))
+        # 根据result的item内的bbox的左上角y坐标，对result进行排序
+        result.sort(key=lambda x: x[0][0][1])
+        return result
