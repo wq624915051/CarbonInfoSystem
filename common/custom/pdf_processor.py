@@ -219,7 +219,7 @@ class PdfProcessor():
                 bboxs.append(line["bbox"])
         return bboxs
 
-    def is_in_bboxes(self, bbox, bboxes, error_axis_x=5, error_axis_y=2):
+    def is_in_bboxes(self, bbox, bboxes, error_axis_x=50, error_axis_y=2):
         """
         描述：判断bbox是否在bboxes中
         参数：

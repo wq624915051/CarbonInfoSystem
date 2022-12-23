@@ -263,8 +263,8 @@ def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3):
             if word_1 in content and word_2 in content and word_3 in content:
                 structure = page_info["new_structure"] # 获取每一页的结构化信息
                 for idx_item, item in enumerate(structure):
-                    # 如果当前句子的内容中包含关键词1和关键词2，且当前句子没有被匹配过，则进行下一步处理
-                    if word_1 in item["content"]  and word_2 in content and (idx_page, idx_item) not in founded_list:
+                    # 如果当前句子的内容中包含关键词2和关键词3，且当前句子没有被匹配过，则进行下一步处理
+                    if word_2 in item["content"]  and word_3 in item["content"] and (idx_page, idx_item) not in founded_list:
                         founded_list.append((idx_page, idx_item))
                         table_count += item["table_count"]
                         image_count += item["image_count"]
