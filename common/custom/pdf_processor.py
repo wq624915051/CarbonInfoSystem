@@ -75,8 +75,9 @@ class PdfProcessor():
                 page_info["table_count"] = len(tables)
                 page_info["new_structure"] = [{
                     "content": content,
-                    "image_count": len(images), # TODO 不合理
-                    "table_count": len(tables)
+                    # FIXME 不合理，实际上计算了整个页面的表格和图片数量
+                    "image_count": len(images), 
+                    "table_count": len(tables) 
                 }]
 
             self.document_info.append(page_info) # 添加到文档信息中
