@@ -257,7 +257,9 @@ def get_paragraphs_with_keywords_precisely(document_info, keywords, sentence_num
 
 def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2):
     """
-    描述: 在筛选出来的段落中找到关键词所在的句（以句号划分）
+    描述: 
+        在筛选出来的段落中找到关键词所在的句（以句号划分）
+        需要同时包含2个关键词
     参数:
         pno_paragraphs: List[(pno, paragraph)]
         keywords: List[关键词]
@@ -286,7 +288,7 @@ def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2):
 def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3):
     """
     描述：
-        获取表格和图片数量
+        获取表格和图片数量, 句子中需要同时含有3个关键词
     参数：
         document_info: dict 文档信息
         keywords_1: list 关键词
