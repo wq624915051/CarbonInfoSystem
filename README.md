@@ -12,6 +12,18 @@ docker build --pull --rm -f "Dockerfile" -t carbon_info_system "."
 docker run -dp PORT:10086 -v PATH2FILE:/code carbon_info_system
 ```
 
+## zjh看我
+1. ssh连接远程服务器
+2. 进入CarbonInfoSystem目录
+`cd /home/CarbonInfoSystem`
+3. 拉取最新代码
+`git pull`
+3. 查看docker容器
+`docker ps` 或者 `docker ps -a`
+4. 重启docker容器
+`docker restart CONTAINER_ID`
+5. 退出远程服务器
+
 ## 文档整理
 1. pdf文件命名 （股票代码得是6位数字）
 2. Excel的格式为.xls
