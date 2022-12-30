@@ -4,73 +4,117 @@ from itertools import product
 
 from common.custom.pdf_processor import clean_content
 
+def match_bracket_keywords(keywords_str, type):
+    """
+    描述：匹配keywords_str里面的括号中的关键词
+    参数：
+        keywords_str: str 关键词
+        type: str 括号类型，圆括号round | 方括号square
+    返回值：
+        keywords: list 匹配到的关键词
+    """
+    if type == "round":
+        pattern = re.compile(r"\((.*?)\)")
+        left, right = "(", ")"
+    elif type == "square":
+        pattern = re.compile(r"\[(.*?)\]")
+        left, right = "[", "]"
+    else:
+        raise Exception(f"括号类型 {type} 不合法")
+    
+    # 判断是否有括号
+    if left in keywords_str and right in keywords_str:
+        if keywords_str.count(left) == 1 and keywords_str.count(right) == 1 and keywords_str.index(left) < keywords_str.index(right):
+            # 使用正则表达式匹配（）中的内容
+            keywords = pattern.findall(keywords_str)
+            if len(keywords) != 1:
+                raise Exception(f"关键词 {keywords_str} 中的括号有问题")
+            keywords = keywords[0] # 获取括号中的内容
+            return keywords
+        else:
+            raise Exception(f"关键词 {keywords_str} 中的括号有问题")
+
+    # 如果左右括号只出现一个，则抛出异常
+    elif (left in keywords_str) ^ (right in keywords_str):
+        raise Exception(f"关键词 {keywords_str} 中的括号不匹配")
+    
+    # 如果没有括号，则返回空字符串
+    else:
+        return ""
+
 def preprocess_keywords(keywords_str):
     """
     描述：
         预处理关键词
-        把"气候、环保、碳、（政策风险、……、出台）"的形式处理成
-        "气候、环保、碳、（政策风险）、……、（出台）"的形式
+        原始关键词："环保风险、(气候、环保)、[政策风险、出台]"
+        其中, 没有括号的关键词为第一类关键词, 句子中出现第一类关键词即可匹配
+        圆括号和方括号中的关键词为第二、第三类关键词, 句子中必须同时出现第二、第三类关键词才能匹配
+        预处理后的关键词为："环保风险、(气候)、(环保)、[政策风险]、[出台]"
     参数：
         keywords_str: str 关键词
     返回值：
         keywords: str 关键词
     """
     keywords_str = keywords_str.replace("（", "(").replace("）", ")")
-    # 判断是否有括号
-    if "(" in keywords_str and ")" in keywords_str:
-        if keywords_str.count("(") == 1 and keywords_str.count(")") == 1 and keywords_str.index("(") < keywords_str.index(")"):
-            # 使用正则表达式匹配（）中的内容
-            pattern = re.compile(r"\((.*?)\)")
-            keywords_1 = pattern.findall(keywords_str)
-            if len(keywords_1) != 1:
-                raise Exception(f"关键词 {keywords_str} 中的括号有问题")
-            
-            keywords_1 = keywords_1[0] # 获取括号中的内容
-            keywords_2 = "".join(keywords_str.split(f"({keywords_1})"))
+    keywords_str = keywords_str.replace("【", "[").replace("】", "]")
+    keywords_str_type_2 = match_bracket_keywords(keywords_str, "round") # 匹配圆括号中的关键词
+    keywords_str_type_3 = match_bracket_keywords(keywords_str, "square") # 匹配方括号中的关键词
+    keywords_str_type_1 = keywords_str.replace(f"({keywords_str_type_2})", "").replace(f"[{keywords_str_type_3}]", "") # 获取括号外的关键词
 
-            # 把关键词用逗号分隔
-            keywords_1 = split_keywords_with_comma(keywords_1)
-            keywords_2 = split_keywords_with_comma(keywords_2)
+    # 使用逗号作为分隔符
+    keywords_1 = split_keywords_with_comma(keywords_str_type_1)
+    keywords_2 = split_keywords_with_comma(keywords_str_type_2)
+    keywords_3 = split_keywords_with_comma(keywords_str_type_3)
 
-            # 把关键词用括号括起来
-            keywords_1_list = [f"({word})" for word in keywords_1.split(",")]
-            keywords_1_str = ",".join(keywords_1_list)
-            res_keywords = split_keywords_with_comma(f"{keywords_2},{keywords_1_str}")
-            return res_keywords
-        else:
-                raise Exception(f"关键词 {keywords_str} 中的括号有问题")
-    # 如果左右括号只出现一个，则抛出异常
-    elif ("(" in keywords_str) ^ (")" in keywords_str):
-        raise Exception(f"关键词 {keywords_str} 中的括号不匹配")
-    else:
-        return split_keywords_with_comma(keywords_str)
+    # 将关键词转换为列表
+    keywords_1_list = [f"{word}" for word in keywords_1.split(",")   if word != ""]
+    keywords_2_list = [f"({word})" for word in keywords_2.split(",") if word != ""]
+    keywords_3_list = [f"[{word}]" for word in keywords_3.split(",") if word != ""]
+
+    # 将列表转换为字符串
+    keywords_1_str = ",".join(keywords_1_list) 
+    keywords_2_str = ",".join(keywords_2_list) 
+    keywords_3_str = ",".join(keywords_3_list) 
+
+    # 将字符串拼接起来
+    keywords_result = f"{keywords_1_str},{keywords_2_str},{keywords_3_str}"
+    keywords_result = split_keywords_with_comma(keywords_result)
+
+    return keywords_result
 
 def split_keywords(keywords):
     """
     描述:
-        把关键词分成2种形式
-        把'环境风险,环保风险,(转型),(识别)'分成2个List: 
-        第一类关键词：不包含括号的关键词 ['环境风险', '环保风险']
-        第二类关键词：包含括号的关键词 ['转型', '识别']
+        把关键词分成3种形式
+        原始关键词："环保风险、(气候、环保)、[政策风险、出台]"
+        其中, 没有括号的关键词为第一类关键词, 句子中出现第一类关键词即可匹配
+        圆括号和方括号中的关键词为第二、第三类关键词, 句子中必须同时出现第二、第三类关键词才能匹配
+        第一类关键词: ["环保风险"]
+        第二类关键词: ["气候", "环保"]
+        第三类关键词: ["政策风险", "出台"]
     参数：
         keywords: str 关键词
     返回值：
         keywords_1: list 第一类关键词
-        keywords_2: list 第二类关键词   
+        keywords_2: list 第二类关键词
+        keywords_3: list 第三类关键词 
     """
     
     keyword_list = keywords.split(',')
 
     # 第一类关键词
-    keywords_1= [item for item in keyword_list if '(' not in item]
+    keywords_1= [item for item in keyword_list if '(' not in item and '[' not in item]
     # 第二类关键词, 并去除括号
     keywords_2 = [item.replace('(', '').replace(')', '') for item in keyword_list if '(' in item]
+    # 第三类关键词, 并去除括号
+    keywords_3 = [item.replace('[', '').replace(']', '') for item in keyword_list if '[' in item]
 
     # 去除空字符串
     keywords_1 = [keyword.strip() for keyword in keywords_1 if keyword != '']
     keywords_2 = [keyword.strip() for keyword in keywords_2 if keyword != '']
+    keywords_3 = [keyword.strip() for keyword in keywords_3 if keyword != '']
 
-    return keywords_1, keywords_2
+    return keywords_1, keywords_2, keywords_3
 
 def split_keywords_with_comma(keywords):
     """
@@ -91,6 +135,10 @@ def split_keywords_with_comma(keywords):
     keywords = keywords.replace('\r', ',')
     keywords = keywords.replace('\t', ',')
     keywords = keywords.replace(',,', ',')
+
+    # 去除前后的逗号
+    keywords = keywords[:-1] if keywords.endswith(',') else keywords
+    keywords = keywords[1:] if keywords.startswith(',') else keywords
     return keywords
 
 def get_paragraphs_with_keywords(document_info, keywords):
