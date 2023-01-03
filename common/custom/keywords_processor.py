@@ -11,7 +11,7 @@ def match_bracket_keywords(keywords_str, type):
         keywords_str: str 关键词
         type: str 括号类型，圆括号round | 方括号square
     返回值：
-        keywords: list 匹配到的关键词
+        keywords_list: list 匹配到的关键词
     """
     if type == "round":
         pattern = re.compile(r"\((.*?)\)")
@@ -24,13 +24,10 @@ def match_bracket_keywords(keywords_str, type):
     
     # 判断是否有括号
     if left in keywords_str and right in keywords_str:
-        if keywords_str.count(left) == 1 and keywords_str.count(right) == 1 and keywords_str.index(left) < keywords_str.index(right):
+        if keywords_str.count(left) == keywords_str.count(right):
             # 使用正则表达式匹配（）中的内容
-            keywords = pattern.findall(keywords_str)
-            if len(keywords) != 1:
-                raise Exception(f"关键词 {keywords_str} 中的括号有问题")
-            keywords = keywords[0] # 获取括号中的内容
-            return keywords
+            keywords_list = pattern.findall(keywords_str)
+            return keywords_list
         else:
             raise Exception(f"关键词 {keywords_str} 中的括号有问题")
 
@@ -57,9 +54,18 @@ def preprocess_keywords(keywords_str):
     """
     keywords_str = keywords_str.replace("（", "(").replace("）", ")")
     keywords_str = keywords_str.replace("【", "[").replace("】", "]")
-    keywords_str_type_2 = match_bracket_keywords(keywords_str, "round") # 匹配圆括号中的关键词
-    keywords_str_type_3 = match_bracket_keywords(keywords_str, "square") # 匹配方括号中的关键词
-    keywords_str_type_1 = keywords_str.replace(f"({keywords_str_type_2})", "").replace(f"[{keywords_str_type_3}]", "") # 获取括号外的关键词
+    keywords_str_type_2 = match_bracket_keywords(keywords_str, "round") # 匹配圆括号中的关键词列表
+    keywords_str_type_3 = match_bracket_keywords(keywords_str, "square") # 匹配方括号中的关键词列表
+    
+    # 获取括号外的关键词
+    for words in keywords_str_type_2:
+        keywords_str = keywords_str.replace(f"({words})", f"")
+    for words in keywords_str_type_3:
+        keywords_str = keywords_str.replace(f"[{words}]", f"")
+    
+    keywords_str_type_1 = keywords_str
+    keywords_str_type_2 = ",".join(keywords_str_type_2)
+    keywords_str_type_3 = ",".join(keywords_str_type_3)
 
     # 使用逗号作为分隔符
     keywords_1 = split_keywords_with_comma(keywords_str_type_1)
