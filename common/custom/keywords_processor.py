@@ -176,9 +176,14 @@ def get_management_speech_paragraphs(document_info, pno_start, pno_end):
     返回值:
         result: List[(段落所在的页码, 段落文本内容)]
     """
+    # 没有高管致辞内容
     if pno_start.strip() == "" and pno_end.strip() == "":
-        return [] # 没有高管致辞内容
+        return [] 
     
+    # 判断是否为数字
+    if not pno_start.isdigit() or not pno_end.isdigit():
+        raise ValueError("pno_start and pno_end must be digit")
+
     # 转换为整数
     pno_start, pno_end = int(pno_start), int(pno_end)
 

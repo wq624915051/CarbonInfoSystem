@@ -17,7 +17,7 @@ def calculate(request):
     方法：POST
     参数：
         indicators: list[dict] 指标列表
-        file: list[{"filepath": "", "pno_start": 1, "pno_end": 3}] pdf文件列表
+        file: list[{"filepath": "", "pno_start": "1", "pno_end": "3"}] pdf文件列表
         system: int 系统ID
         w1: int 贡献度1
         w2: int 贡献度2
@@ -71,8 +71,6 @@ def calculate(request):
             # 判断filepaths中的文件是否存在
             for file in files:
                 filepath = file["filepath"]
-                pno_start = file["pno_start"]
-                pno_end = file["pno_end"]
                 if not os.path.exists(filepath):
                     my_logger.error(f"文件 {filepath} 不存在")
                     return retJson(code=0, msg=f"文件 {filepath} 不存在")
