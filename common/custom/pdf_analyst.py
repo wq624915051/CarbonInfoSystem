@@ -195,36 +195,36 @@ class PdfAnalyst():
             # pno_paragraphs = get_paragraphs_with_keywords_precisely(self.pdf.document_info, keywords_special, sentence_number=30)
             pno_paragraphs = get_management_speech_paragraphs(self.pdf.document_info, self.pno_start, self.pno_end)
             # 段落中含有碳、环保、绿色的句子
-            pno_sentences = get_sentences_with_keywords(pno_paragraphs, self.keywords_normal, keywords_2=[])
+            pno_sentences = get_sentences_with_keywords(pno_paragraphs, self.keywords_normal, keywords_2=[], keywords_type="single")
             # 获取表格和图片数量
-            table_count, image_count = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_special, keywords_3=[])
+            table_count, image_count = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_special, keywords_3=[], keywords_type="single")
         elif name == "减少的二氧化碳降低百分比":
             # 段落中含有 关键词 的句子
             keywords_1.append("二氧化碳排放下降")
             keywords_1.append("二氧化碳排放量下降")
             keywords_1.append("二氧化碳排放量减少")
             # 段落中含有 第一类关键词 的句子
-            pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_1, keywords_2=[])
+            pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_1, keywords_2=[], keywords_type="single")
             # 添加 段落中同时含有 第二类关键词和第三类关键词 的句子
-            pno_sentences.extend(get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_2, keywords_3))
+            pno_sentences.extend(get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_2, keywords_3, keywords_type="double"))
 
             # 获取表格和图片数量 第一类关键词
-            table_count_1, image_count_1 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_1, keywords_3=[])
+            table_count_1, image_count_1 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_1, keywords_3=[], keywords_type="single")
             
             # 获取表格和图片数量 第二类关键词和第三类关键词
-            table_count_2, image_count_2 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_2, keywords_3)
+            table_count_2, image_count_2 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_2, keywords_3, keywords_type="double")
 
             table_count = table_count_1 + table_count_2
             image_count = image_count_1 + image_count_2
         else:
             # 段落中含有 第一类关键词 的句子
-            pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_1, keywords_2=[])
+            pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_1, keywords_2=[], keywords_type="single")
             # 添加 段落中同时含有 第二类关键词和第三类关键词 的句子
-            pno_sentences.extend(get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_2, keywords_3))
+            pno_sentences.extend(get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_2, keywords_3, keywords_type="double"))
 
             # 获取表格和图片数量
-            table_count_1, image_count_1 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_1, keywords_3=[])
-            table_count_2, image_count_2 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_2, keywords_3)
+            table_count_1, image_count_1 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_1, keywords_3=[], keywords_type="single")
+            table_count_2, image_count_2 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_2, keywords_3, keywords_type="double")
             table_count = table_count_1 + table_count_2
             image_count = image_count_1 + image_count_2
         
@@ -270,7 +270,7 @@ class PdfAnalyst():
             # pno_paragraphs = get_paragraphs_with_keywords_precisely(self.pdf.document_info, ["致辞", "高管致辞", "董事长致辞", "管理层致辞"], sentence_number=30)
             pno_paragraphs = get_management_speech_paragraphs(self.pdf.document_info, self.pno_start, self.pno_end)
             # 段落中含有碳、气候、节能、能源的句子
-            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候", "节能", "能源"], keywords_2=[])
+            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候", "节能", "能源"], keywords_2=[], keywords_type="single")
             # sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             sentences = list(set([item[1].strip() for item in pno_sentences])) 
             content = "\n".join(sentences) # 拼接成字符串
@@ -282,7 +282,7 @@ class PdfAnalyst():
             pno_paragraphs = get_paragraphs_with_keywords_precisely(
                 self.pdf.document_info, ["风险"], sentence_number=5)
             # 段落中含有管理机制、制度、流程、整体、气候变化、能源的句子
-            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["管理机制", "制度", "流程", "整体", "气候变化", "能源"], keywords_2=[])
+            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["管理机制", "制度", "流程", "整体", "气候变化", "能源"], keywords_2=[], keywords_type="single")
             # sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             sentences = list(set([item[1].strip() for item in pno_sentences])) 
             content = "\n".join(sentences) # 拼接成字符串
@@ -294,7 +294,7 @@ class PdfAnalyst():
             pno_paragraphs = get_paragraphs_with_keywords_precisely(
                 self.pdf.document_info, ["利益相关者"], sentence_number=5)
             # 段落中含有碳、气候变化、节能、能源的句子
-            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候变化", "节能", "能源"], keywords_2=[])
+            pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候变化", "节能", "能源"], keywords_2=[], keywords_type="single")
             # sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             sentences = list(set([item[1].strip() for item in pno_sentences])) 
             content = "\n".join(sentences) # 拼接成字符串
@@ -308,7 +308,7 @@ class PdfAnalyst():
             # 获取去年和前年的年份
             last_year, last_last_year = str(self.year - 1), str(self.year - 2)
             # 段落中含有去年和前年的句子
-            pno_sentences = get_sentences_with_keywords(pno_paragraphs, [last_year, last_last_year], keywords_2=[])
+            pno_sentences = get_sentences_with_keywords(pno_paragraphs, [last_year, last_last_year], keywords_2=[], keywords_type="single")
             # sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             sentences = list(set([item[1].strip() for item in pno_sentences])) 
             content = "\n".join(sentences) # 拼接成字符串
@@ -337,18 +337,18 @@ class PdfAnalyst():
 
         else:
             # 段落中含有 第一类关键词 的句子
-            pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_1, keywords_2=[])
+            pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_1, keywords_2=[], keywords_type="single")
             # 添加 段落中同时含有 第二类关键词和第三类关键词 的句子
-            pno_sentences.extend(get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_2, keywords_3))
+            pno_sentences.extend(get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_2, keywords_3, keywords_type="double"))
             # sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
             sentences = list(set([item[1].strip() for item in pno_sentences])) 
             content = "\n".join(sentences) # 拼接成字符串
             if method == "关键词":
                 if name == "确定碳排放核算责任的运营边界（依据范围一、范围二、范围三界定）":
                     ''' 涵盖了几个范围得几分 '''
-                    range_1 = get_sentences_with_keywords(self.relevant_pno_paragraphs, ["范围一", "范畴一"], keywords_2=[])
-                    range_2 = get_sentences_with_keywords(self.relevant_pno_paragraphs, ["范围二", "范畴二"], keywords_2=[])
-                    range_3 = get_sentences_with_keywords(self.relevant_pno_paragraphs, ["范围三", "范畴三"], keywords_2=[])
+                    range_1 = get_sentences_with_keywords(self.relevant_pno_paragraphs, ["范围一", "范畴一"], keywords_2=[], keywords_type="single")
+                    range_2 = get_sentences_with_keywords(self.relevant_pno_paragraphs, ["范围二", "范畴二"], keywords_2=[], keywords_type="single")
+                    range_3 = get_sentences_with_keywords(self.relevant_pno_paragraphs, ["范围三", "范畴三"], keywords_2=[], keywords_type="single")
                     score = sum([bool(lst) for lst in (range_1, range_2, range_3)])
                     return content, score
 

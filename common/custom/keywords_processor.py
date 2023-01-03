@@ -260,20 +260,30 @@ def get_paragraphs_with_keywords_precisely(document_info, keywords, sentence_num
     result = list(set(result)) # 去重
     return result
 
-def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2):
+def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2, keywords_type):
     """
     描述: 
         在筛选出来的段落中找到关键词所在的句（以句号划分）
-        需要同时包含2个关键词
+        keywords_type: single 需要包含1个关键词
+        keywords_type: double 同时包含2个关键词
     参数:
         pno_paragraphs: List[(pno, paragraph)]
         keywords: List[关键词]
+        keywords_type: 
+            single: 只有一个关键词列表
+            double: 有两个关键词列表
     返回值:
         sentences: List[(句子所在的页码, 句子)]
     """
-    # 如果只有一个关键词，则把第二个关键词设置为空, 防止product的结果为空
-    keywords_1 = [""]  if len(keywords_1) == 0 else keywords_1
-    keywords_2 = [""]  if len(keywords_2) == 0 else keywords_2
+    if keywords_type == "single":
+        keywords_2 = [""]
+        if len(keywords_1) == 0:
+            return []
+    elif keywords_type == "double":
+        if len(keywords_1) == 0 or len(keywords_2) == 0:
+            return []
+    else:
+        raise ValueError("keywords_type只能是single或double")
     
     pattern = r'[^。!！?？]*[。!！?？]' # 定义正则表达式，用于匹配句子
     result_sentences = [] # 保存结果
@@ -290,24 +300,33 @@ def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2):
     result_sentences = list(set(result_sentences)) # 去重
     return result_sentences
 
-def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3):
+def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3, keywords_type):
     """
     描述：
-        获取表格和图片数量, 句子中需要同时含有3个关键词
+        获取表格和图片数量, 句子中首先必须包含keywords_1中的关键词
+        keywords_type: single 需要同时包含keywords_2中的关键词
+        keywords_type: double 需要同时包含keywords_2和keywords_3中的关键词
     参数：
         document_info: dict 文档信息
         keywords_1: list 关键词
         keywords_2: list 关键词
         keywords_3: list 关键词
+        keywords_type: 
+            single: 只有keywords_1, keywords_2
+            double: 有keywords_1, keywords_2, keywords_3
     返回值：
         table_count: int 表格数量
         image_count: int 图片数量
     """
-
-    # 如果只有一个关键词，则把第二个关键词设置为空, 防止product的结果为空
-    keywords_1 = [""]  if len(keywords_1) == 0 else keywords_1
-    keywords_2 = [""]  if len(keywords_2) == 0 else keywords_2
-    keywords_3 = [""]  if len(keywords_3) == 0 else keywords_3
+    if keywords_type == "single":
+        keywords_3 = [""]
+        if len(keywords_1) == 0 or len(keywords_2) == 0:
+            return 0, 0
+    elif keywords_type == "double":
+        if len(keywords_1) == 0 or len(keywords_2) == 0 and len(keywords_3) == 0:
+            return 0, 0
+    else:
+        raise ValueError("keywords_type只能是single或double")
 
     table_count = 0
     image_count = 0
@@ -316,7 +335,7 @@ def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3):
         content = page_info["content"] # 获取每一页的文本内容
         content = clean_content(content) # 去除换行符、回车符、制表符、章节号
         for (word_1, word_2, word_3) in list(product(keywords_1, keywords_2, keywords_3)):
-            # 如果当前页的内容中包含关键词1和关键词2，则进行下一步处理
+            # 如果当前页的内容中包含关键词1、关键词2、关键词3, 则进行下一步处理
             if word_1 in content and word_2 in content and word_3 in content:
                 structure = page_info["new_structure"] # 获取每一页的结构化信息
                 for idx_item, item in enumerate(structure):
