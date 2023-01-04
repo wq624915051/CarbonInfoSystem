@@ -83,6 +83,7 @@ class PdfProcessor():
             self.document_info.append(page_info) # 添加到文档信息中
         
         self.delete_images(os.path.join(self.media_root, 'temp_images')) # 删除临时图片
+        self.pdfplumber.close() # 关闭pdfplumber
 
     def get_content_by_PPStructure(self, structure):
         """
