@@ -3,6 +3,7 @@ import jieba
 from itertools import product
 
 from common.custom.pdf_processor import clean_content
+from common.custom.utils import remove_duplicate
 
 def match_bracket_keywords(keywords_str, type):
     """
@@ -166,7 +167,7 @@ def get_paragraphs_with_keywords(document_info, keywords):
         for word in keywords:
             if word in content:
                 result.append((page_info["pno"], content))
-    result = list(set(result)) # 去重
+    result = remove_duplicate(result) # 去重
     return result
 
 def get_management_speech_paragraphs(document_info, pno_start, pno_end):
@@ -207,7 +208,7 @@ def get_management_speech_paragraphs(document_info, pno_start, pno_end):
         content = page_info["content"] # 获取每一页的文本内容
         content = clean_content(content) # 去除换行符、回车符、制表符、章节号
         result.append((page_info["pno"], content))
-    result = list(set(result)) # 去重
+    result = remove_duplicate(result) # 去重
     return result
 
 def get_paragraphs_with_keywords_precisely(document_info, keywords, sentence_number=5):
@@ -263,7 +264,7 @@ def get_paragraphs_with_keywords_precisely(document_info, keywords, sentence_num
                         paragraph = " ".join(previous_sentences + current_sentences + next_sentences) # 拼接成段落
                         result.append((page_info["pno"], paragraph)) # 保存结果
 
-    result = list(set(result)) # 去重
+    result = remove_duplicate(result) # 去重
     return result
 
 def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2, keywords_type):
@@ -297,14 +298,17 @@ def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2, keywords
         # 使用正则表达式查找所有句子的位置
         sentences = re.findall(pattern, paragraph)
         for sentence in sentences:
+            print(sentence)
             words = jieba.lcut(sentence, cut_all=False)
             words.append("") # 为了保证keywords_2中的关键词也能匹配到
             for (word_1, word_2) in list(product(keywords_1, keywords_2)):
                 if word_1 in words and word_2 in words:
                     sentence = sentence.strip() # 去除首尾空格
                     result_sentences.append((pno, sentence))
+                    break # 一旦匹配到，就去匹配下一句话
+            print("#"*10)
 
-    result_sentences = list(set(result_sentences)) # 去重
+    result_sentences = remove_duplicate(result_sentences) # 去重
     return result_sentences
 
 def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3, keywords_type):

@@ -19,6 +19,7 @@ from common.custom.keywords_processor import get_paragraphs_with_keywords
 from common.custom.keywords_processor import get_paragraphs_with_keywords_precisely
 from common.custom.keywords_processor import get_sentences_with_keywords
 from common.custom.keywords_processor import get_management_speech_paragraphs
+from common.custom.utils import remove_duplicate
 
 class PdfAnalyst():
     '''
@@ -232,7 +233,8 @@ class PdfAnalyst():
         content = "\n".join(sentences) # 拼接成字符串
 
         pno_list = [item[0] for item in pno_sentences] # 句子所在的页码
-        pno_list = list(set(pno_list)) # 页码去重
+        pno_list = remove_duplicate(pno_list) # 页码去重
+
         # 获取图片数量和表格数量
         # image_count = sum([page_info["image_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
         # table_count = sum([page_info["table_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
@@ -272,7 +274,7 @@ class PdfAnalyst():
             # 段落中含有碳、气候、节能、能源的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候", "节能", "能源"], keywords_2=[], keywords_type="single")
             # sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
-            sentences = list(set([item[1].strip() for item in pno_sentences])) 
+            sentences = remove_duplicate([item[1].strip() for item in pno_sentences])
             content = "\n".join(sentences) # 拼接成字符串
             score = 1 if len(sentences) else 0 # 有句子则得分1分
             return content, score
@@ -284,7 +286,7 @@ class PdfAnalyst():
             # 段落中含有管理机制、制度、流程、整体、气候变化、能源的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["管理机制", "制度", "流程", "整体", "气候变化", "能源"], keywords_2=[], keywords_type="single")
             # sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
-            sentences = list(set([item[1].strip() for item in pno_sentences])) 
+            sentences = remove_duplicate([item[1].strip() for item in pno_sentences])
             content = "\n".join(sentences) # 拼接成字符串
             score = 1 if len(sentences) else 0 # 有句子则得分1分
             return content, score
@@ -296,7 +298,7 @@ class PdfAnalyst():
             # 段落中含有碳、气候变化、节能、能源的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, ["碳", "气候变化", "节能", "能源"], keywords_2=[], keywords_type="single")
             # sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
-            sentences = list(set([item[1].strip() for item in pno_sentences])) 
+            sentences = remove_duplicate([item[1].strip() for item in pno_sentences])
             content = "\n".join(sentences) # 拼接成字符串
             score = 1 if len(sentences) else 0 # 有句子则得分1分
             return content, score
@@ -310,7 +312,7 @@ class PdfAnalyst():
             # 段落中含有去年和前年的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, [last_year, last_last_year], keywords_2=[], keywords_type="single")
             # sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
-            sentences = list(set([item[1].strip() for item in pno_sentences])) 
+            sentences = remove_duplicate([item[1].strip() for item in pno_sentences])
             content = "\n".join(sentences) # 拼接成字符串
             score = 1 if len(sentences) else 0 # 有句子则得分1分
             return content, score
@@ -341,7 +343,7 @@ class PdfAnalyst():
             # 添加 段落中同时含有 第二类关键词和第三类关键词 的句子
             pno_sentences.extend(get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_2, keywords_3, keywords_type="double"))
             # sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
-            sentences = list(set([item[1].strip() for item in pno_sentences])) 
+            sentences = remove_duplicate([item[1].strip() for item in pno_sentences])
             content = "\n".join(sentences) # 拼接成字符串
             if method == "关键词":
                 if name == "确定碳排放核算责任的运营边界（依据范围一、范围二、范围三界定）":
@@ -485,7 +487,7 @@ class PdfAnalyst():
             nonrepeated_sentences: list 不重复的句子列表
         """
         # 去重
-        sentences = list(set([item[1].strip() for item in pno_sentences]))
+        sentences = remove_duplicate([item[1].strip() for item in pno_sentences])
         
         nonrepeated_sentences = []
         for sentence in sentences:
