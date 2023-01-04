@@ -266,7 +266,7 @@ def get_paragraphs_with_keywords_precisely(document_info, keywords, sentence_num
     result = list(set(result)) # 去重
     return result
 
-def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2, keywords_type):
+def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2, ignore_words, keywords_type):
     """
     描述: 
         在筛选出来的段落中找到关键词所在的句（以句号划分）
@@ -305,6 +305,12 @@ def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2, keywords
                     result_sentences.append((pno, sentence))
 
     result_sentences = list(set(result_sentences)) # 去重
+    for pno1, sentence1 in result_sentences:
+        word = jieba.cut_for_search(sentence1)
+        for word_4 in word:
+            if word_4 in ignore_words:
+                result_sentences.remove((pno1,sentence1))
+                break
     return result_sentences
 
 def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3, keywords_type):
