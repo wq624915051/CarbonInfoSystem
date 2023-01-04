@@ -445,6 +445,7 @@ class PdfAnalyst():
         content = re.sub(r"邮编：\d{7}", "", content)
         content = re.sub(r"[\w!#$%&'*+/=?^_`{|}~.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}", "", content)
         return content    
+    
     def text_quality(self, indicator_level_3):
         '''
         描述：
