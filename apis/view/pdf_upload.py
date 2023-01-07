@@ -1,4 +1,5 @@
 import os
+import fitz
 import logging
 import datetime
 from django.conf import settings
@@ -43,16 +44,25 @@ def upload_pdfs(request):
             if not os.path.exists(pdf_dir):
                 os.makedirs(pdf_dir)
 
+            # 保存pdf文件
             filepaths = []
+            page_count = 0
             for file in files:
-                file_name = file.name
-                file_path = os.path.join(pdf_dir, file_name)
+                file_path = os.path.join(pdf_dir, file.name)
                 filepaths.append(file_path)
+
                 with open(file_path, 'wb') as f:
                     for chunk in file.chunks():
                         f.write(chunk)
+                
+                # 获取PDF页数
+                pdf_document = fitz.open(file_path)
+                page_count += pdf_document.page_count
+            
+            # 预测耗时(分钟)
+            predicted_time = int(page_count * 15 / 60)
             my_logger.info(f"上传pdf文件成功")
-            return retJson(code=1, msg="success", data={"filepaths": filepaths})
+            return retJson(code=1, msg="success", data={"filepaths": filepaths, "predicted_time": predicted_time})
         except Exception as e:
             my_logger.error(f"{str(logging.exception(e))}")
             return retJson(code=0, msg=str(e))
