@@ -150,11 +150,14 @@ class PdfAnalyst():
                         indicator_level_3["最终得分"] = score
 
         self.result["indicators"] = self.indicators
-        self.result["filepath"] = os.path.relpath(self.execl_filepath, settings.BASE_DIR) # 获取相对路径
         if self.systemId == 1:
             write_indicators_to_excel1(self.execl_filepath, self.result["indicators"])
         elif self.systemId == 2:
             write_indicators_to_excel2(self.execl_filepath, self.result["indicators"])
+        
+        # 获取相对路径
+        relative_path = os.path.relpath(self.execl_filepath, settings.BASE_DIR)
+        self.result["filepath"] = os.path.join(os.path.sep, relative_path)
 
     def get_company_code_name_year(self):
         '''
