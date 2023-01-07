@@ -220,6 +220,7 @@ class PdfAnalyst():
 
             table_count = table_count_1 + table_count_2
             image_count = image_count_1 + image_count_2
+            sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
         else:
             # 段落中含有 第一类关键词 的句子
             pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_1, keywords_2=[], ignore_words=self.ignore_words, keywords_type="single")
@@ -231,8 +232,8 @@ class PdfAnalyst():
             table_count_2, image_count_2 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_2, keywords_3, keywords_type="double")
             table_count = table_count_1 + table_count_2
             image_count = image_count_1 + image_count_2
+            sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
         
-        sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
         content = "\n".join(sentences) # 拼接成字符串
 
         pno_list = [item[0] for item in pno_sentences] # 句子所在的页码
