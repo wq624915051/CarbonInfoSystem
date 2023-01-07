@@ -19,7 +19,7 @@ from common.custom.keywords_processor import get_paragraphs_with_keywords
 from common.custom.keywords_processor import get_paragraphs_with_keywords_precisely
 from common.custom.keywords_processor import get_sentences_with_keywords
 from common.custom.keywords_processor import get_management_speech_paragraphs
-from common.custom.utils import remove_duplicate
+from common.custom.utils import remove_duplicate, check_pno
 
 class PdfAnalyst():
     '''
@@ -44,9 +44,12 @@ class PdfAnalyst():
         self.excel_base_path = excel_base_path # excel文件存放路径
 
         self.filepath = self.file["filepath"] # pdf文件路径
+
         # 先把页码变为字符串，方便后面空字符串的判断
         self.pno_start = str(self.file["pno_start"]) # 高管致辞开始页码
         self.pno_end = str(self.file["pno_end"]) # 高管致辞结束页码
+        check_pno(self.pno_start, self.pno_end) # 判断页码是否合法
+
         self.date = datetime.datetime.now().strftime('%Y%m%d')
 
         self.pdf = PdfProcessor(self.filepath, media_root=settings.MEDIA_ROOT) # 提取PDF内容存储到self.pdf.document_info
