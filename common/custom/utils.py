@@ -14,6 +14,10 @@ def check_pno(pno_start, pno_end):
     """
     判断页码是否合法
     """
+    # 没有高管致辞内容
+    if pno_start.strip() == "" and pno_end.strip() == "":
+        return 
+    
     # 判断是否为数字
     if not pno_start.isdigit() or not pno_end.isdigit():
         raise ValueError("pno_start and pno_end must be digit")
