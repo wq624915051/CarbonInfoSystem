@@ -49,6 +49,10 @@ def upload_pdfs(request):
             page_count = 0
             for file in files:
                 file_path = os.path.join(pdf_dir, file.name)
+                if file_path in filepaths:
+                    my_logger.error(f"文件{file.name}已存在")
+                    return retJson(code=0, msg=f"文件{file.name}已存在")
+                
                 filepaths.append(file_path)
 
                 with open(file_path, 'wb') as f:
