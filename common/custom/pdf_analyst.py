@@ -150,7 +150,7 @@ class PdfAnalyst():
                         indicator_level_3["最终得分"] = score
 
         self.result["indicators"] = self.indicators
-        self.result["filepath"] = self.execl_filepath
+        self.result["filepath"] = os.path.relpath(self.execl_filepath, settings.BASE_DIR) # 获取相对路径
         if self.systemId == 1:
             write_indicators_to_excel1(self.execl_filepath, self.result["indicators"])
         elif self.systemId == 2:
