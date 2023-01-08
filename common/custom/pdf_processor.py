@@ -35,8 +35,10 @@ class PdfProcessor():
         self.zoom_x = 2.0 # 缩放比例
         self.zoom_y = 2.0 # 缩放比例
         self.mat = fitz.Matrix(self.zoom_x, self.zoom_y) # 缩放矩阵
+        self.y_threshold = 300 # y轴阈值
 
         self.document_info = [] # PDF每一页的信息
+        self.img_save_paths = [] # 保存图片的路径
         for pno, page in enumerate(self.documnet):
             page_info = {"pno": pno} # 页面信息
 
@@ -48,15 +50,16 @@ class PdfProcessor():
 
             '''
             [图片页面len(tables)一定是0, len(tables)不为0的一定是文本页面]
-            图片页面 len(images)==1 and text=="" 使用paddleocr 
-            文本页面且有表格 len(tables) != 0 使用paddleocr
-            文本页面且没有表格 len(tables) == 0 使用pdfplumber
+            图片页面：images==1 and text=="" 使用paddleocr 
+            文本页面：有表格或有图片 使用paddleocr
+            文本页面：没有表格也没有图片 使用pdfplumber
             '''
-            if (len(images) == 1 and text == "") or (len(tables) != 0):
+            if (len(images) == 1 and text == "") or (len(tables) != 0) or (len(images) != 0):
                 now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
                 img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}_{now}.png")
                 page.get_pixmap(matrix=self.mat).save(img_save_path) 
                 self.img_save_path = img_save_path
+                self.img_save_paths.append(img_save_path)
 
                 # 利用 PPStructure 进行版面分析和文字提取
                 structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
@@ -66,8 +69,8 @@ class PdfProcessor():
                 page_info["table_count"] = self.get_table_count(structure) # 表格数量
                 page_info["new_structure"] = self.get_image_table_count(structure) # 每一块下方的图片数量和表格数量
 
-            elif len(tables) == 0:
-                # 没有表格,直接获取文本内容
+            elif len(tables) == 0 and len(images) == 0:
+                # 文本页面且没有表格没有图片,直接获取文本内容
                 content = page.get_text("text") # 使用PyMuPdf提取文字
                 content = pdfplumber_page.extract_text() # 使用pdfplumber提取文字
                 page_info["content"] = clean_content(content)
@@ -75,14 +78,14 @@ class PdfProcessor():
                 page_info["table_count"] = len(tables)
                 page_info["new_structure"] = [{
                     "content": content,
-                    # FIXME 不合理，实际上计算了整个页面的表格和图片数量
+                    # image_count 和 table_count 为 0
                     "image_count": len(images), 
                     "table_count": len(tables) 
                 }]
 
             self.document_info.append(page_info) # 添加到文档信息中
         
-        self.delete_images(os.path.join(self.media_root, 'temp_images')) # 删除临时图片
+        self.delete_images(self.img_save_paths) # 删除临时图片
         self.pdfplumber.close() # 关闭pdfplumber
 
     def get_content_by_PPStructure(self, structure):
@@ -185,7 +188,7 @@ class PdfProcessor():
                 new_structure.append(tmp)
         
         # 遍历每一块，获取阈值内的图片数量和表格数量
-        y_threshold = 300 # y坐标的阈值
+        y_threshold = self.y_threshold # y坐标的阈值
         for i, item in enumerate(new_structure):
             if item["type"] == "text":
                 item["image_count"] = 0
@@ -240,18 +243,15 @@ class PdfProcessor():
                 return True
         return False
 
-    def delete_images(self, del_path):
+    def delete_images(self, filepaths):
         '''
         描述：
             批量删除图片
         参数：
-            del_path: 删除路径
+            filepaths: List 文件路径
         '''
-        for file in os.listdir(del_path):
-            if file == ".gitkeep":
-                continue
-            else:
-                os.remove(os.path.join(del_path, file))
+        for file in filepaths:
+            os.remove(file)
 
 def clean_content(content):
     """
