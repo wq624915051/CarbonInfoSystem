@@ -48,7 +48,7 @@ class PdfProcessor():
 
             '''
             [图片页面len(tables)一定是0, len(tables)不为0的一定是文本页面]
-            图片页面 images==1 and text=="" 使用paddleocr 
+            图片页面 len(images)==1 and text=="" 使用paddleocr 
             文本页面且有表格 len(tables) != 0 使用paddleocr
             文本页面且没有表格 len(tables) == 0 使用pdfplumber
             '''

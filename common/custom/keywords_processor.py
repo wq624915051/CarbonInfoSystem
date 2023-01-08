@@ -267,7 +267,7 @@ def get_paragraphs_with_keywords_precisely(document_info, keywords, sentence_num
     result = remove_duplicate(result) # 去重
     return result
 
-def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2, ignore_words, keywords_type):
+def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2, keywords_type):
     """
     描述: 
         在筛选出来的段落中找到关键词所在的句（以句号划分）
@@ -309,12 +309,8 @@ def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2, ignore_w
             print("#"*10)
 
     result_sentences = remove_duplicate(result_sentences) # 去重
-    for pno1, sentence1 in result_sentences:
-        word = jieba.cut_for_search(sentence1)
-        for word_4 in word:
-            if word_4 in ignore_words:
-                result_sentences.remove((pno1,sentence1))
-                break
+    result_sentences = ignore_sentences_with_keywords(result_sentences)
+
     return result_sentences
 
 def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3, keywords_type):
@@ -362,3 +358,24 @@ def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3, key
                         table_count += item["table_count"]
                         image_count += item["image_count"]
     return table_count, image_count
+
+def ignore_sentences_with_keywords(sentences):
+    """
+    描述：
+        根据关键词去除无用信息段落
+    参数：
+        sentences:List[(页码,句子)]
+    返回值:
+        sentences:List[(页码,句子)]
+    """
+    # 需要去除的关键词
+    ignore_words = ["电话","邮箱","邮编","地址"]
+    for pno, sentence in sentences:
+        words = jieba.cut_for_search(sentence)
+        for word in words:
+            if word in ignore_words:
+                sentences.remove((pno,sentence))
+                break
+    return sentences
+        
+
