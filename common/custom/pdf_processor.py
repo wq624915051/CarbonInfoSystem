@@ -38,6 +38,7 @@ class PdfProcessor():
         self.y_threshold = 300 # y轴阈值
 
         self.document_info = [] # PDF每一页的信息
+        self.img_save_paths = [] # 保存图片的路径
         for pno, page in enumerate(self.documnet):
             page_info = {"pno": pno} # 页面信息
 
@@ -58,6 +59,7 @@ class PdfProcessor():
                 img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}_{now}.png")
                 page.get_pixmap(matrix=self.mat).save(img_save_path) 
                 self.img_save_path = img_save_path
+                self.img_save_paths.append(img_save_path)
 
                 # 利用 PPStructure 进行版面分析和文字提取
                 structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
@@ -83,7 +85,7 @@ class PdfProcessor():
 
             self.document_info.append(page_info) # 添加到文档信息中
         
-        self.delete_images(os.path.join(self.media_root, 'temp_images')) # 删除临时图片
+        self.delete_images(self.img_save_paths) # 删除临时图片
         self.pdfplumber.close() # 关闭pdfplumber
 
     def get_content_by_PPStructure(self, structure):
@@ -241,18 +243,15 @@ class PdfProcessor():
                 return True
         return False
 
-    def delete_images(self, del_path):
+    def delete_images(self, filepaths):
         '''
         描述：
             批量删除图片
         参数：
-            del_path: 删除路径
+            filepaths: List 文件路径
         '''
-        for file in os.listdir(del_path):
-            if file == ".gitkeep":
-                continue
-            else:
-                os.remove(os.path.join(del_path, file))
+        for file in filepaths:
+            os.remove(file)
 
 def clean_content(content):
     """
