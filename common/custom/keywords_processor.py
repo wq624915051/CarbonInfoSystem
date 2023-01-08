@@ -307,6 +307,8 @@ def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2, keywords
                     break # 一旦匹配到，就去匹配下一句话
 
     result_sentences = remove_duplicate(result_sentences) # 去重
+    result_sentences = ignore_sentences_with_keywords(result_sentences)
+
     return result_sentences
 
 def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3, keywords_type):
@@ -354,3 +356,24 @@ def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3, key
                         table_count += item["table_count"]
                         image_count += item["image_count"]
     return table_count, image_count
+
+def ignore_sentences_with_keywords(in_sentences):
+    """
+    描述：
+        根据关键词去除无用信息段落
+    参数：
+        sentences:List[(页码,句子)]
+    返回值:
+        sentences:List[(页码,句子)]
+    """
+    # 需要去除的关键词
+    ignore_words = ["电话","邮箱","邮编","地址"]
+    for pno, sentence in in_sentences:
+        words = jieba.cut_for_search(sentence)
+        for word in words:
+            if word in ignore_words:
+                in_sentences.remove((pno,sentence))
+                break
+    return in_sentences
+        
+
