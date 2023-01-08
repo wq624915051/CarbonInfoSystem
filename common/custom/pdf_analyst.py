@@ -205,6 +205,8 @@ class PdfAnalyst():
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, self.keywords_normal, keywords_2=[], keywords_type="single")
             # 获取表格和图片数量
             table_count, image_count = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_special, keywords_3=[], keywords_type="single")
+            # 高管致辞部分不需要去重
+            sentences = remove_duplicate([item[1].strip() for item in pno_sentences])
         elif name == "减少的二氧化碳降低百分比":
             # 段落中含有 关键词 的句子
             keywords_1.append("二氧化碳排放下降")

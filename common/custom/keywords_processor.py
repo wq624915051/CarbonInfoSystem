@@ -357,7 +357,7 @@ def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3, key
                         image_count += item["image_count"]
     return table_count, image_count
 
-def ignore_sentences_with_keywords(sentences):
+def ignore_sentences_with_keywords(in_sentences):
     """
     描述：
         根据关键词去除无用信息段落
@@ -368,12 +368,12 @@ def ignore_sentences_with_keywords(sentences):
     """
     # 需要去除的关键词
     ignore_words = ["电话","邮箱","邮编","地址"]
-    for pno, sentence in sentences:
+    for pno, sentence in in_sentences:
         words = jieba.cut_for_search(sentence)
         for word in words:
             if word in ignore_words:
-                sentences.remove((pno,sentence))
+                in_sentences.remove((pno,sentence))
                 break
-    return sentences
+    return in_sentences
         
 
