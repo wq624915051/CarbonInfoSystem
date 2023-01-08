@@ -298,7 +298,6 @@ def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2, keywords
         # 使用正则表达式查找所有句子的位置
         sentences = re.findall(pattern, paragraph)
         for sentence in sentences:
-            print(sentence)
             words = jieba.lcut(sentence, cut_all=False)
             words.append("") # 为了保证keywords_2中的关键词也能匹配到
             for (word_1, word_2) in list(product(keywords_1, keywords_2)):
@@ -306,7 +305,6 @@ def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2, keywords
                     sentence = sentence.strip() # 去除首尾空格
                     result_sentences.append((pno, sentence))
                     break # 一旦匹配到，就去匹配下一句话
-            print("#"*10)
 
     result_sentences = remove_duplicate(result_sentences) # 去重
     result_sentences = ignore_sentences_with_keywords(result_sentences)
