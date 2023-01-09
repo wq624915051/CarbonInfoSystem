@@ -42,45 +42,22 @@ class PdfProcessor():
         for pno, page in enumerate(self.documnet):
             page_info = {"pno": pno} # 页面信息
 
-            # 通过pdfplumber获取图片和表格的数量
-            pdfplumber_page = self.pdfplumber.pages[pno]
-            images = pdfplumber_page.images # 获取图片
-            text = pdfplumber_page.extract_text() # 获取文本
-            tables = pdfplumber_page.extract_tables() # 获取表格
+            # TODO 单页双页判断
+            # TODO 单栏双栏判断
 
-            '''
-            [图片页面len(tables)一定是0, len(tables)不为0的一定是文本页面]
-            图片页面：images==1 and text=="" 使用paddleocr 
-            文本页面：有表格或有图片 使用paddleocr
-            文本页面：没有表格也没有图片 使用pdfplumber
-            '''
-            if True or (len(images) == 1 and text == "") or (len(tables) != 0) or (len(images) != 0):
-                now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-                img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}_{now}.png")
-                page.get_pixmap(matrix=self.mat).save(img_save_path) 
-                self.img_save_path = img_save_path
-                self.img_save_paths.append(img_save_path)
+            # 保存PDF页面图片
+            now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+            img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}_{now}.png")
+            page.get_pixmap(matrix=self.mat).save(img_save_path)
+            self.img_save_path = img_save_path
+            self.img_save_paths.append(img_save_path)
 
-                # 利用 PPStructure 进行版面分析和文字提取
-                structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
-                page_info["content"] = self.get_content_by_PaddleOCR(structure) # 页面内容 by PaddleOCR [速度慢]
-                page_info["image_count"] = self.get_image_count(structure) # 图片数量
-                page_info["table_count"] = self.get_table_count(structure) # 表格数量
-                page_info["new_structure"] = self.get_image_table_count(structure) # 每一块下方的图片数量和表格数量
-
-            elif len(tables) == 0 and len(images) == 0:
-                # 文本页面且没有表格没有图片,直接获取文本内容
-                content = page.get_text("text") # 使用PyMuPdf提取文字
-                content = pdfplumber_page.extract_text() # 使用pdfplumber提取文字
-                page_info["content"] = clean_content(content)
-                page_info["image_count"] = len(images)
-                page_info["table_count"] = len(tables)
-                page_info["new_structure"] = [{
-                    "content": content,
-                    # image_count 和 table_count 为 0
-                    "image_count": len(images), 
-                    "table_count": len(tables) 
-                }]
+            # 利用 PPStructure 和 paddleocr 进行版面分析和文字提取
+            structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
+            page_info["content"] = self.get_content_by_PaddleOCR(structure) # 页面内容 by PaddleOCR [速度慢]
+            page_info["image_count"] = self.get_image_count(structure) # 图片数量
+            page_info["table_count"] = self.get_table_count(structure) # 表格数量
+            page_info["new_structure"] = self.get_image_table_count(structure) # 每一块下方的图片数量和表格数量
 
             self.document_info.append(page_info) # 添加到文档信息中
         
