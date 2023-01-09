@@ -31,8 +31,18 @@ class MyOCR():
         """
         img = cv2imread(img_path)
         structure = self.pdf_engine(img)
-        # 根据structure的字典内的bbox的左上角y坐标，对structure进行排序
-        structure.sort(key=lambda x: x["bbox"][1])
+        
+        # 计算每个item的中心点坐标
+        for item in structure:
+            middle_point = ((item["bbox"][0] + item["bbox"][2])*0.5, (item["bbox"][1] + item["bbox"][3])*0.5)
+            item["middle_point"] = middle_point
+
+        """
+        根据每个item的中心点坐标，对structure进行排序
+        先按y轴升序，y轴相同按x轴升序
+        x轴、y轴坐标都除以100，根据百位数字进行排序
+        """
+        structure = sorted(structure, key=lambda x: ((x["middle_point"][1] // 100), (x["middle_point"][0] // 100)))
         return structure
     
     def get_ocr_result(self, img_path):
