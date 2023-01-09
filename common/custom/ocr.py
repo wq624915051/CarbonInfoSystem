@@ -56,6 +56,5 @@ class MyOCR():
         '''
         results = self.ocr_engine.ocr(img_path, cls=False)
         result = list(chain(*results))
-        # 根据result的item内的bbox的左上角y坐标，对result进行排序
-        result.sort(key=lambda x: x[0][0][1])
+
         return result
