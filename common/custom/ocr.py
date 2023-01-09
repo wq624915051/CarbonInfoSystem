@@ -12,7 +12,7 @@ class MyOCR():
     """
     描述: 利用paddleocr进行版面分析和文字提取
     """
-    def __init__(self, table=False, ocr=True, show_log=False, image_orientation=False,use_angle_cls=False, use_gpu=False) -> None:
+    def __init__(self, table=False, ocr=True, show_log=False, image_orientation=False, use_angle_cls=False, use_gpu=False) -> None:
         self.pdf_engine = PPStructure(table=table, ocr=ocr, show_log=show_log, image_orientation=image_orientation, use_gpu=use_gpu)
         self.ocr_engine = PaddleOCR(use_angle_cls=use_angle_cls, lang="ch", use_gpu=use_gpu)
     
