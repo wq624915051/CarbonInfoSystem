@@ -40,29 +40,87 @@ class PdfProcessor():
         self.document_info = [] # PDF每一页的信息
         self.img_save_paths = [] # 保存图片的路径
         for pno, page in enumerate(self.documnet):
-            page_info = {"pno": pno} # 页面信息
-
-            # TODO 单页双页判断
             # TODO 单栏双栏判断
-
-            # 保存PDF页面图片
-            now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-            img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}_{now}.png")
-            page.get_pixmap(matrix=self.mat).save(img_save_path)
-            self.img_save_path = img_save_path
-            self.img_save_paths.append(img_save_path)
-
-            # 利用 PPStructure 和 paddleocr 进行版面分析和文字提取
-            structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
-            page_info["content"] = self.get_content_by_PaddleOCR(structure) # 页面内容 by PaddleOCR [速度慢]
-            page_info["image_count"] = self.get_image_count(structure) # 图片数量
-            page_info["table_count"] = self.get_table_count(structure) # 表格数量
-            page_info["new_structure"] = self.get_image_table_count(structure) # 每一块下方的图片数量和表格数量
+            if page.width < page.height:
+                page_info = self.single_page(pno, page) # 单页
+            else:
+                page_info = self.double_page(pno, page) # 双页
 
             self.document_info.append(page_info) # 添加到文档信息中
         
         self.delete_images(self.img_save_paths) # 删除临时图片
         self.pdfplumber.close() # 关闭pdfplumber
+
+    def single_page(self, pno, page):
+        '''
+        描述：
+            单页PDF处理
+        参数:
+            pno: 页码
+            page: PyMuPdf的Page对象
+        返回值：
+            page_info: 页面信息
+        '''
+        # 保存PDF页面图片
+        now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}_{now}.png")
+        page.get_pixmap(matrix=self.mat).save(img_save_path)
+        self.img_save_paths.append(img_save_path)
+
+        # 利用 PPStructure 和 paddleocr 进行版面分析和文字提取
+        structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
+        page_info = {"pno": pno} # 页面信息
+        page_info["content"] = self.get_content_by_PaddleOCR(structure, img_save_path) # 页面内容 by PaddleOCR [速度慢]
+        page_info["image_count"] = self.get_image_count(structure) # 图片数量
+        page_info["table_count"] = self.get_table_count(structure) # 表格数量
+        page_info["new_structure"] = self.get_image_table_count(structure) # 每一块下方的图片数量和表格数量
+
+        return page_info
+
+    def double_page(self, pno, page):
+        '''
+        描述：
+            双页PDF处理
+        参数:
+            pno: 页码
+            page: PyMuPdf的Page对象
+        返回值：
+            page_info: 页面信息
+        '''
+        # PDF页面图片存储路径
+        now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        img_left_save_path = os.path.join(self.media_root, 'temp_images', f"images_left_{pno}_{now}.png")
+        img_right_save_path = os.path.join(self.media_root, 'temp_images', f"images_right_{pno}_{now}.png")
+        self.img_save_paths.append(img_left_save_path)
+        self.img_save_paths.append(img_right_save_path)
+
+        rect = page.rect # 页面矩形
+        middle_top_point = fitz.Point((rect.br[0] + rect.tl[0]) * 0.5, rect.tl[1]) # 中线上点
+        middle_bottom_point = fitz.Point((rect.br[0] + rect.tl[0]) * 0.5, rect.br[1]) # 中线下点
+        clip_left = fitz.Rect(rect.tl, middle_bottom_point) # 左边矩形
+        clip_right = fitz.Rect(middle_top_point, rect.br) # 右边矩形
+        
+        # 保存图片
+        page.get_pixmap(matrix=self.mat, clip=clip_left).save(img_left_save_path)
+        page.get_pixmap(matrix=self.mat, clip=clip_right).save(img_right_save_path) 
+
+        # 利用 PPStructure 和 paddleocr 进行版面分析和文字提取
+        structure_left = self.pdf_ocr.get_structure(img_left_save_path)
+        structure_right = self.pdf_ocr.get_structure(img_right_save_path)
+        content = self.get_content_by_PaddleOCR(structure_left, img_left_save_path)
+        content += self.get_content_by_PaddleOCR(structure_right, img_right_save_path)
+        image_count = self.get_image_count(structure_left) + self.get_image_count(structure_right)
+        table_count = self.get_table_count(structure_left) + self.get_table_count(structure_right)
+        new_structure = self.get_image_table_count(structure_left) + self.get_image_table_count(structure_right)
+
+        page_info = {
+            "pno": pno,
+            "content": content,
+            "image_count": image_count,
+            "table_count": table_count,
+            "new_structure": new_structure
+        } 
+        return page_info
 
     def get_content_by_PPStructure(self, structure):
         """
@@ -81,7 +139,7 @@ class PdfProcessor():
         content = clean_content(content)
         return content
 
-    def get_content_by_PaddleOCR(self, structure):
+    def get_content_by_PaddleOCR(self, structure, img_save_path):
         """
         描述：
             使用 PaddleOCR + PPStructure 获取文本内容
@@ -92,7 +150,7 @@ class PdfProcessor():
             content: 文本内容
         """
         # 获取paddle ocr的识别结果
-        ocr_result = self.pdf_ocr.get_ocr_result(self.img_save_path)
+        ocr_result = self.pdf_ocr.get_ocr_result(img_save_path)
 
         # 获取文字部分的Bbox
         text_bboxs = self.get_text_bboxes(structure)
