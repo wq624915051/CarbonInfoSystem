@@ -54,7 +54,7 @@ class PdfProcessor():
             文本页面：有表格或有图片 使用paddleocr
             文本页面：没有表格也没有图片 使用pdfplumber
             '''
-            if (len(images) == 1 and text == "") or (len(tables) != 0) or (len(images) != 0):
+            if True or (len(images) == 1 and text == "") or (len(tables) != 0) or (len(images) != 0):
                 now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
                 img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}_{now}.png")
                 page.get_pixmap(matrix=self.mat).save(img_save_path) 
