@@ -139,7 +139,7 @@ class PdfProcessor():
         content = clean_content(content)
         return content
 
-    def get_content_by_PaddleOCR(self, structure, img_save_path):
+    def get_content_by_PaddleOCR(self, structure, img_save_path, error_axis_x=50):
         """
         描述：
             使用 PaddleOCR + PPStructure 获取文本内容
@@ -153,14 +153,24 @@ class PdfProcessor():
         ocr_result = self.pdf_ocr.get_ocr_result(img_save_path)
 
         # 获取文字部分的Bbox
-        text_bboxs = self.get_text_bboxes(structure)
+        text_bboxes = self.get_text_bboxes(structure)
 
         content = ""
-        for line in ocr_result:
-            # 提取line的bbox, 左上x, 左上y, 右下x, 右下y
-            bbox = [line[0][0][0], line[0][0][1], line[0][2][0], line[0][2][1]]
-            if self.is_in_bboxes(bbox, text_bboxs):
-                content += line[1][0]
+        # 遍历已排序完成的structure的text_bboxes
+        for text_bbox in text_bboxes:
+            block_res = [] # 存放块中的内容
+            for line in ocr_result:
+                # 提取line的bbox [左上x, 左上y, 右下x, 右下y]
+                bbox = [line[0][0][0], line[0][0][1], line[0][2][0], line[0][2][1]]
+                # 判断line的bbox是否在text_bbox中
+                flag = self.is_in_bboxes(bbox, [text_bbox], error_axis_x=error_axis_x, error_axis_y=2)
+                if flag:
+                    block_res.append(line)
+            
+            # 对块内的内容按Y轴排序
+            block_res = sorted(block_res, key=lambda x: ((x[0][0][1] + x[0][2][1])*0.5))
+            content += "".join([line[1][0] for line in block_res])
+    
         content = clean_content(content)
         return content
 
