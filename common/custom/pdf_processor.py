@@ -63,7 +63,6 @@ class PdfProcessor():
 
                 # 利用 PPStructure 进行版面分析和文字提取
                 structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
-                page_info["content"] = self.get_content_by_PPStructure(structure) # 页面内容 by PPStructure
                 page_info["content"] = self.get_content_by_PaddleOCR(structure) # 页面内容 by PaddleOCR [速度慢]
                 page_info["image_count"] = self.get_image_count(structure) # 图片数量
                 page_info["table_count"] = self.get_table_count(structure) # 表格数量
