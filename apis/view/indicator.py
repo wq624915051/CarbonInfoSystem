@@ -121,7 +121,7 @@ def get_indicators(request):
                 my_logger.info(f"碳信息披露系统获取指标列表成功")
                 return retJson(code=1, msg="success", data={"indicators": res})
             elif system == 2:
-                filepath = os.path.join(settings.BASE_DIR, "data", "企业碳中和发展评价指标体系.xls") # TODO
+                filepath = os.path.join(settings.BASE_DIR, "data", "企业碳中和发展评价指标体系.xls") 
                 res = read_indicators_from_excel2(filepath)
                 my_logger.info(f"碳中和发展系统获取指标列表成功")
                 return retJson(code=1, msg="success", data={"indicators": res})
