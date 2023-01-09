@@ -40,7 +40,6 @@ class PdfProcessor():
         self.document_info = [] # PDF每一页的信息
         self.img_save_paths = [] # 保存图片的路径
         for pno, page in enumerate(self.documnet):
-            # TODO 单栏双栏判断
             if page.width < page.height:
                 page_info = self.single_page(pno, page) # 单页
             else:
@@ -69,8 +68,11 @@ class PdfProcessor():
 
         # 利用 PPStructure 和 paddleocr 进行版面分析和文字提取
         structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
+
+        error_axis_x = 50 if True else 5 # TODO 单栏双栏判断
+
         page_info = {"pno": pno} # 页面信息
-        page_info["content"] = self.get_content_by_PaddleOCR(structure, img_save_path) # 页面内容 by PaddleOCR [速度慢]
+        page_info["content"] = self.get_content_by_PaddleOCR(structure, img_save_path, error_axis_x) # 页面内容 by PaddleOCR [速度慢]
         page_info["image_count"] = self.get_image_count(structure) # 图片数量
         page_info["table_count"] = self.get_table_count(structure) # 表格数量
         page_info["new_structure"] = self.get_image_table_count(structure) # 每一块下方的图片数量和表格数量
@@ -107,8 +109,12 @@ class PdfProcessor():
         # 利用 PPStructure 和 paddleocr 进行版面分析和文字提取
         structure_left = self.pdf_ocr.get_structure(img_left_save_path)
         structure_right = self.pdf_ocr.get_structure(img_right_save_path)
-        content = self.get_content_by_PaddleOCR(structure_left, img_left_save_path)
-        content += self.get_content_by_PaddleOCR(structure_right, img_right_save_path)
+
+        error_axis_x_left = 50 if True else 5 # TODO 单栏双栏判断
+        error_axis_x_right = 50 if True else 5 # TODO 单栏双栏判断
+
+        content = self.get_content_by_PaddleOCR(structure_left, img_left_save_path, error_axis_x_left)
+        content += self.get_content_by_PaddleOCR(structure_right, img_right_save_path, error_axis_x_right)
         image_count = self.get_image_count(structure_left) + self.get_image_count(structure_right)
         table_count = self.get_table_count(structure_left) + self.get_table_count(structure_right)
         new_structure = self.get_image_table_count(structure_left) + self.get_image_table_count(structure_right)
