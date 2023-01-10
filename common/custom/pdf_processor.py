@@ -252,6 +252,20 @@ class PdfProcessor():
                 continue
             else:
                 os.remove(os.path.join(del_path, file))
+    def is_single_column(self, structure):
+        """
+        描述:
+            判断该页pdf类型(单栏/多栏)
+        参数:
+            图片路径
+        返回值:
+            0:单栏
+            1:多栏
+        """
+        bbox = []
+        bbox = self.get_text_bboxes()
+        
+        
 
 def clean_content(content):
     """
@@ -268,3 +282,5 @@ def clean_content(content):
     # 去除所有章节号，例如4.3.1
     content = re.sub(r"\d+\.?\d*\.\d+\.?\d*\.\d+\.?\d*","", content)
     return content
+
+
