@@ -3,7 +3,7 @@ django==4.1.2
 django-cors-headers==3.13.0
 jieba==0.42.1
 numpy==1.23.4
-PyMuPDF==1.21.1
+PyMuPDF==1.20.2
 pillow==9.3.0
 pytesser3==1.0.1
 pytesseract==0.3.10

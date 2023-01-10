@@ -34,6 +34,7 @@ ADD ./data/chi_sim.traineddata /usr/share/tesseract-ocr/4.00/tessdata/chi_sim.tr
 # 将 requirements.txt 复制到容器的 code 目录
 ADD requirements.txt /code/
 RUN pip install -r requirements.txt -i https://mirror.baidu.com/pypi/simple
+RUN pip install pip PyMuPDF==1.21.1 -i https://mirror.baidu.com/pypi/simple
 
 # 将当前目录复制到容器的 code 目录
 ADD . /code/
