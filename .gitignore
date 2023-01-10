@@ -4,6 +4,8 @@ media/uploads/*
 media/downloads/*
 media/temp_images/*
 test.*
+log.txt
+pno*.csv
 
 # except for .gitkeep
 !.gitkeep
