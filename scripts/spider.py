@@ -1519,7 +1519,10 @@ class Spider():
 
     def spider(self, filename, pno_start, pno_end, systemId):
         url = "http://101.42.10.168:10086/api/calculate"
-        headers = {"Content-Type": "application/json"}
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36',
+            "Content-Type": "application/json",
+        }
         if systemId not in [1, 2]:
             raise Exception("systemId参数错误")
 
@@ -1565,6 +1568,10 @@ class Spider():
         lines = text.split('\n')
         for line in lines:
             line = line.split(',')
+
+            if len(line) != 3:
+                continue
+
             filename = line[0].strip()
             if filename == "PDF名称":
                 continue
