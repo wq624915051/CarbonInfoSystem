@@ -263,7 +263,6 @@ class PdfAnalyst():
             content: string 提取的文字内容
             score: int 分数
         '''
-        # TODO keywords_2=[]
         # 需要忽略的三级指标名称列表
         ignore_name_list = [
             "企业披露的碳排放量涵盖了组织边界和运营边界以内的总排放量",
@@ -434,13 +433,11 @@ class PdfAnalyst():
         返回值：
             content: string 去除无用数字后的文本内容
         '''
-        # TODO 需要完善
         # 去除所有年份
         content = re.sub(r"(19\d{2}|20\d{2})年", "", content)
         content = re.sub(r"(\d+)月", "", content)
         content = re.sub(r"(\d+)日", "", content)
         content = re.sub(r"(\d+)号", "", content)
-        # TODO 感觉去除日期的都可以单独写个函数了, 乐
         # 去除所有日期 yyyy-./mm-./dd, mm-./dd-./yyyy
         content = re.sub(r"\d{4}[-|.|/]+\d+[-|.|/]+\d+|\d+[-|.|/]+\d+[-|.|/]+\d{4}", "", content)
         content = re.sub(r"([0-9]{4})-(0[1-9]|1[0-2])-(0[1-3]|1[0-2])", "", content)

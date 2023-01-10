@@ -12,7 +12,7 @@ class MyOCR():
     """
     描述: 利用paddleocr进行版面分析和文字提取
     """
-    def __init__(self, table=False, ocr=True, show_log=False, image_orientation=False,use_angle_cls=False, use_gpu=False) -> None:
+    def __init__(self, table=False, ocr=True, show_log=False, image_orientation=False, use_angle_cls=False, use_gpu=False) -> None:
         self.pdf_engine = PPStructure(table=table, ocr=ocr, show_log=show_log, image_orientation=image_orientation, use_gpu=use_gpu)
         self.ocr_engine = PaddleOCR(use_angle_cls=use_angle_cls, lang="ch", use_gpu=use_gpu)
     
@@ -31,8 +31,18 @@ class MyOCR():
         """
         img = cv2imread(img_path)
         structure = self.pdf_engine(img)
-        # 根据structure的字典内的bbox的左上角y坐标，对structure进行排序
-        structure.sort(key=lambda x: x["bbox"][1])
+        
+        # 计算每个item的中心点坐标
+        for item in structure:
+            middle_point = ((item["bbox"][0] + item["bbox"][2])*0.5, (item["bbox"][1] + item["bbox"][3])*0.5)
+            item["middle_point"] = middle_point
+
+        """
+        根据每个item的中心点坐标，对structure进行排序
+        先按y轴升序，y轴相同按x轴升序
+        x轴、y轴坐标都除以100，根据百位数字进行排序
+        """
+        structure = sorted(structure, key=lambda x: ((x["middle_point"][1] // 100), (x["middle_point"][0] // 100)))
         return structure
     
     def get_ocr_result(self, img_path):
@@ -46,6 +56,5 @@ class MyOCR():
         '''
         results = self.ocr_engine.ocr(img_path, cls=False)
         result = list(chain(*results))
-        # 根据result的item内的bbox的左上角y坐标，对result进行排序
-        result.sort(key=lambda x: x[0][0][1])
+
         return result

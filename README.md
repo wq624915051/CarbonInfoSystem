@@ -31,8 +31,8 @@ docker run -dp PORT:10086 -v PATH2FILE:/code carbon_info_system
 4. 碳中和系统的“关键词+数字”手动
 
 ## TODO
-- [ ] DEBUG = True; ALLOWED_HOSTS = []
-- [ ] 日志记录
+- [x] DEBUG = True; ALLOWED_HOSTS = []
+- [x] 日志记录
 - [x] 异常处理
 - [x] PDF分析 - [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)
 - [x] [配置Tesseract OCR](https://zhuanlan.zhihu.com/p/420259031)

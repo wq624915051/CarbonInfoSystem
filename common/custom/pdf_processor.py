@@ -35,55 +35,98 @@ class PdfProcessor():
         self.zoom_x = 2.0 # 缩放比例
         self.zoom_y = 2.0 # 缩放比例
         self.mat = fitz.Matrix(self.zoom_x, self.zoom_y) # 缩放矩阵
+        self.y_threshold = 300 # y轴阈值
 
         self.document_info = [] # PDF每一页的信息
+        self.img_save_paths = [] # 保存图片的路径
         for pno, page in enumerate(self.documnet):
-            page_info = {"pno": pno} # 页面信息
-
-            # 通过pdfplumber获取图片和表格的数量
-            pdfplumber_page = self.pdfplumber.pages[pno]
-            images = pdfplumber_page.images # 获取图片
-            text = pdfplumber_page.extract_text() # 获取文本
-            tables = pdfplumber_page.extract_tables() # 获取表格
-
-            '''
-            [图片页面len(tables)一定是0, len(tables)不为0的一定是文本页面]
-            图片页面 len(images)==1 and text=="" 使用paddleocr 
-            文本页面且有表格 len(tables) != 0 使用paddleocr
-            文本页面且没有表格 len(tables) == 0 使用pdfplumber
-            '''
-            if (len(images) == 1 and text == "") or (len(tables) != 0):
-                now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-                img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}_{now}.png")
-                page.get_pixmap(matrix=self.mat).save(img_save_path) 
-                self.img_save_path = img_save_path
-
-                # 利用 PPStructure 进行版面分析和文字提取
-                structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
-                page_info["content"] = self.get_content_by_PPStructure(structure) # 页面内容 by PPStructure
-                page_info["content"] = self.get_content_by_PaddleOCR(structure) # 页面内容 by PaddleOCR [速度慢]
-                page_info["image_count"] = self.get_image_count(structure) # 图片数量
-                page_info["table_count"] = self.get_table_count(structure) # 表格数量
-                page_info["new_structure"] = self.get_image_table_count(structure) # 每一块下方的图片数量和表格数量
-
-            elif len(tables) == 0:
-                # 没有表格,直接获取文本内容
-                content = page.get_text("text") # 使用PyMuPdf提取文字
-                content = pdfplumber_page.extract_text() # 使用pdfplumber提取文字
-                page_info["content"] = clean_content(content)
-                page_info["image_count"] = len(images)
-                page_info["table_count"] = len(tables)
-                page_info["new_structure"] = [{
-                    "content": content,
-                    # FIXME 不合理，实际上计算了整个页面的表格和图片数量
-                    "image_count": len(images), 
-                    "table_count": len(tables) 
-                }]
+            if page.width < page.height:
+                page_info = self.single_page(pno, page) # 单页
+            else:
+                page_info = self.double_page(pno, page) # 双页
 
             self.document_info.append(page_info) # 添加到文档信息中
         
-        self.delete_images(os.path.join(self.media_root, 'temp_images')) # 删除临时图片
+        self.delete_images(self.img_save_paths) # 删除临时图片
         self.pdfplumber.close() # 关闭pdfplumber
+
+    def single_page(self, pno, page):
+        '''
+        描述：
+            单页PDF处理
+        参数:
+            pno: 页码
+            page: PyMuPdf的Page对象
+        返回值：
+            page_info: 页面信息
+        '''
+        # 保存PDF页面图片
+        now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}_{now}.png")
+        page.get_pixmap(matrix=self.mat).save(img_save_path)
+        self.img_save_paths.append(img_save_path)
+
+        # 利用 PPStructure 和 paddleocr 进行版面分析和文字提取
+        structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
+
+        error_axis_x = 50 if True else 5 # TODO 单栏双栏判断
+
+        page_info = {"pno": pno} # 页面信息
+        page_info["content"] = self.get_content_by_PaddleOCR(structure, img_save_path, error_axis_x) # 页面内容 by PaddleOCR [速度慢]
+        page_info["image_count"] = self.get_image_count(structure) # 图片数量
+        page_info["table_count"] = self.get_table_count(structure) # 表格数量
+        page_info["new_structure"] = self.get_image_table_count(structure) # 每一块下方的图片数量和表格数量
+
+        return page_info
+
+    def double_page(self, pno, page):
+        '''
+        描述：
+            双页PDF处理
+        参数:
+            pno: 页码
+            page: PyMuPdf的Page对象
+        返回值：
+            page_info: 页面信息
+        '''
+        # PDF页面图片存储路径
+        now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        img_left_save_path = os.path.join(self.media_root, 'temp_images', f"images_left_{pno}_{now}.png")
+        img_right_save_path = os.path.join(self.media_root, 'temp_images', f"images_right_{pno}_{now}.png")
+        self.img_save_paths.append(img_left_save_path)
+        self.img_save_paths.append(img_right_save_path)
+
+        rect = page.rect # 页面矩形
+        middle_top_point = fitz.Point((rect.br[0] + rect.tl[0]) * 0.5, rect.tl[1]) # 中线上点
+        middle_bottom_point = fitz.Point((rect.br[0] + rect.tl[0]) * 0.5, rect.br[1]) # 中线下点
+        clip_left = fitz.Rect(rect.tl, middle_bottom_point) # 左边矩形
+        clip_right = fitz.Rect(middle_top_point, rect.br) # 右边矩形
+        
+        # 保存图片
+        page.get_pixmap(matrix=self.mat, clip=clip_left).save(img_left_save_path)
+        page.get_pixmap(matrix=self.mat, clip=clip_right).save(img_right_save_path) 
+
+        # 利用 PPStructure 和 paddleocr 进行版面分析和文字提取
+        structure_left = self.pdf_ocr.get_structure(img_left_save_path)
+        structure_right = self.pdf_ocr.get_structure(img_right_save_path)
+
+        error_axis_x_left = 50 if True else 5 # TODO 单栏双栏判断
+        error_axis_x_right = 50 if True else 5 # TODO 单栏双栏判断
+
+        content = self.get_content_by_PaddleOCR(structure_left, img_left_save_path, error_axis_x_left)
+        content += self.get_content_by_PaddleOCR(structure_right, img_right_save_path, error_axis_x_right)
+        image_count = self.get_image_count(structure_left) + self.get_image_count(structure_right)
+        table_count = self.get_table_count(structure_left) + self.get_table_count(structure_right)
+        new_structure = self.get_image_table_count(structure_left) + self.get_image_table_count(structure_right)
+
+        page_info = {
+            "pno": pno,
+            "content": content,
+            "image_count": image_count,
+            "table_count": table_count,
+            "new_structure": new_structure
+        } 
+        return page_info
 
     def get_content_by_PPStructure(self, structure):
         """
@@ -102,7 +145,7 @@ class PdfProcessor():
         content = clean_content(content)
         return content
 
-    def get_content_by_PaddleOCR(self, structure):
+    def get_content_by_PaddleOCR(self, structure, img_save_path, error_axis_x=50):
         """
         描述：
             使用 PaddleOCR + PPStructure 获取文本内容
@@ -113,17 +156,27 @@ class PdfProcessor():
             content: 文本内容
         """
         # 获取paddle ocr的识别结果
-        ocr_result = self.pdf_ocr.get_ocr_result(self.img_save_path)
+        ocr_result = self.pdf_ocr.get_ocr_result(img_save_path)
 
         # 获取文字部分的Bbox
-        text_bboxs = self.get_text_bboxes(structure)
+        text_bboxes = self.get_text_bboxes(structure)
 
         content = ""
-        for line in ocr_result:
-            # 提取line的bbox, 左上x, 左上y, 右下x, 右下y
-            bbox = [line[0][0][0], line[0][0][1], line[0][2][0], line[0][2][1]]
-            if self.is_in_bboxes(bbox, text_bboxs):
-                content += line[1][0]
+        # 遍历已排序完成的structure的text_bboxes
+        for text_bbox in text_bboxes:
+            block_res = [] # 存放块中的内容
+            for line in ocr_result:
+                # 提取line的bbox [左上x, 左上y, 右下x, 右下y]
+                bbox = [line[0][0][0], line[0][0][1], line[0][2][0], line[0][2][1]]
+                # 判断line的bbox是否在text_bbox中
+                flag = self.is_in_bboxes(bbox, [text_bbox], error_axis_x=error_axis_x, error_axis_y=2)
+                if flag:
+                    block_res.append(line)
+            
+            # 对块内的内容按Y轴排序
+            block_res = sorted(block_res, key=lambda x: ((x[0][0][1] + x[0][2][1])*0.5))
+            content += "".join([line[1][0] for line in block_res])
+    
         content = clean_content(content)
         return content
 
@@ -185,7 +238,7 @@ class PdfProcessor():
                 new_structure.append(tmp)
         
         # 遍历每一块，获取阈值内的图片数量和表格数量
-        y_threshold = 300 # y坐标的阈值
+        y_threshold = self.y_threshold # y坐标的阈值
         for i, item in enumerate(new_structure):
             if item["type"] == "text":
                 item["image_count"] = 0
@@ -240,32 +293,15 @@ class PdfProcessor():
                 return True
         return False
 
-    def delete_images(self, del_path):
+    def delete_images(self, filepaths):
         '''
         描述：
             批量删除图片
         参数：
-            del_path: 删除路径
+            filepaths: List 文件路径
         '''
-        for file in os.listdir(del_path):
-            if file == ".gitkeep":
-                continue
-            else:
-                os.remove(os.path.join(del_path, file))
-    def is_single_column(self, structure):
-        """
-        描述:
-            判断该页pdf类型(单栏/多栏)
-        参数:
-            图片路径
-        返回值:
-            0:单栏
-            1:多栏
-        """
-        bbox = []
-        bbox = self.get_text_bboxes()
-        
-        
+        for file in filepaths:
+            os.remove(file)
 
 def clean_content(content):
     """
