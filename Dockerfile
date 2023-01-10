@@ -22,6 +22,11 @@ WORKDIR /code
 # 更新 pip
 RUN pip install pip -U -i https://mirrors.aliyun.com/pypi/simple/
 
+# 更新apt
+RUN apt-get update
+# 安装cv2相关依赖
+RUN apt install libgl1-mesa-glx -y
+
 # 将 requirements.txt 复制到容器的 code 目录
 ADD requirements.txt /code/
 RUN pip install -r requirements.txt -i https://mirror.baidu.com/pypi/simple
