@@ -40,7 +40,9 @@ class PdfProcessor():
         self.document_info = [] # PDF每一页的信息
         self.img_save_paths = [] # 保存图片的路径
         for pno, page in enumerate(self.documnet):
-            if page.width < page.height:
+            rect = page.rect
+            print(rect.width,rect.height)
+            if rect.width / rect.height <= 1.4:
                 page_info = self.single_page(pno, page) # 单页
             else:
                 page_info = self.double_page(pno, page) # 双页
@@ -60,6 +62,7 @@ class PdfProcessor():
         返回值：
             page_info: 页面信息
         '''
+        print("single")
         # 保存PDF页面图片
         now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}_{now}.png")
@@ -68,14 +71,16 @@ class PdfProcessor():
 
         # 利用 PPStructure 和 paddleocr 进行版面分析和文字提取
         structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
+        error_axis_x = 50 if self.is_single_colum(structure=structure) else 5 # 单栏双栏判断
+        print(error_axis_x)
 
-        error_axis_x = 50 if True else 5 # TODO 单栏双栏判断
 
         page_info = {"pno": pno} # 页面信息
         page_info["content"] = self.get_content_by_PaddleOCR(structure, img_save_path, error_axis_x) # 页面内容 by PaddleOCR [速度慢]
         page_info["image_count"] = self.get_image_count(structure) # 图片数量
         page_info["table_count"] = self.get_table_count(structure) # 表格数量
         page_info["new_structure"] = self.get_image_table_count(structure) # 每一块下方的图片数量和表格数量
+        print(page_info["content"])
 
         return page_info
 
@@ -90,6 +95,7 @@ class PdfProcessor():
             page_info: 页面信息
         '''
         # PDF页面图片存储路径
+        print("double")
         now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         img_left_save_path = os.path.join(self.media_root, 'temp_images', f"images_left_{pno}_{now}.png")
         img_right_save_path = os.path.join(self.media_root, 'temp_images', f"images_right_{pno}_{now}.png")
@@ -110,11 +116,15 @@ class PdfProcessor():
         structure_left = self.pdf_ocr.get_structure(img_left_save_path)
         structure_right = self.pdf_ocr.get_structure(img_right_save_path)
 
-        error_axis_x_left = 50 if True else 5 # TODO 单栏双栏判断
-        error_axis_x_right = 50 if True else 5 # TODO 单栏双栏判断
+        error_axis_x_left = 50 if self.is_single_colum(structure=structure_left) else 5 # 单栏双栏判断
+        error_axis_x_right = 50 if self.is_single_colum(structure=structure_right) else 5 # 单栏双栏判断
+        print(error_axis_x_left)
+        print(error_axis_x_right)
 
         content = self.get_content_by_PaddleOCR(structure_left, img_left_save_path, error_axis_x_left)
+        print(content)
         content += self.get_content_by_PaddleOCR(structure_right, img_right_save_path, error_axis_x_right)
+        print(self.get_content_by_PaddleOCR(structure_right, img_right_save_path, error_axis_x_right))
         image_count = self.get_image_count(structure_left) + self.get_image_count(structure_right)
         table_count = self.get_table_count(structure_left) + self.get_table_count(structure_right)
         new_structure = self.get_image_table_count(structure_left) + self.get_image_table_count(structure_right)
@@ -145,7 +155,7 @@ class PdfProcessor():
         content = clean_content(content)
         return content
 
-    def get_content_by_PaddleOCR(self, structure, img_save_path, error_axis_x=50):
+    def get_content_by_PaddleOCR(self, structure, img_save_path, error_axis_x):
         """
         描述：
             使用 PaddleOCR + PPStructure 获取文本内容
@@ -302,6 +312,30 @@ class PdfProcessor():
         '''
         for file in filepaths:
             os.remove(file)
+    
+    def is_single_colum(self, structure):
+        """
+        描述:
+            判断是否为单栏页面
+        参数:
+            structure:该页面的结构化信息 List[Dict]
+        返回值:
+            true:单栏页面
+            false:多栏页面
+        """
+        axis = 50 # 误差值
+        middle_point = []
+        for item in structure:
+            middle_point.append(item["middle_point"])
+        sorted_middle_point = sorted(middle_point, key= lambda t:t[1]) # 按照纵坐标升序
+        print(sorted_middle_point)
+        for index in range(0,len(sorted_middle_point) - 1):
+            temp1 = sorted_middle_point[index + 1][0] - sorted_middle_point[index][0] # 横坐标差值
+            temp2 = sorted_middle_point[index + 1][1] - sorted_middle_point[index][1] # 纵坐标差值
+            if temp2 <= axis and temp1 >= axis: # 横坐标差值大于误差且纵坐标差值小于误差，则判断为多栏
+                return False
+        return True
+        
 
 def clean_content(content):
     """
@@ -318,3 +352,5 @@ def clean_content(content):
     # 去除所有章节号，例如4.3.1
     content = re.sub(r"\d+\.?\d*\.\d+\.?\d*\.\d+\.?\d*","", content)
     return content
+
+
