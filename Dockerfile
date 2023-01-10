@@ -24,8 +24,13 @@ RUN pip install pip -U -i https://mirrors.aliyun.com/pypi/simple/
 
 # 更新apt
 RUN apt-get update
-# 安装cv2相关依赖
-RUN apt install libgl1-mesa-glx -y
+
+# 安装相关依赖
+RUN apt-get install libgl1-mesa-glx -y
+RUN apt-get install libglib2.0-0 -y
+RUN apt-get install libgomp1 -y
+# RUN apt-get install libsm6 libxext6 -y
+# RUN apt-get install libxrender-dev -y 
 
 # 将 requirements.txt 复制到容器的 code 目录
 ADD requirements.txt /code/
