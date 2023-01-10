@@ -22,15 +22,6 @@ WORKDIR /code
 # 更新 pip
 RUN pip install pip -U -i https://mirrors.aliyun.com/pypi/simple/
 
-# 安装tesseract-ocr
-RUN apt-get update
-# RUN apt-get upgrade
-RUN apt-get install tesseract-ocr -y
-# 安装相关依赖
-RUN apt install libgl1-mesa-glx -y
-# 安装tesseract-ocr中文语言包
-ADD ./data/chi_sim.traineddata /usr/share/tesseract-ocr/4.00/tessdata/chi_sim.traineddata
-
 # 将 requirements.txt 复制到容器的 code 目录
 ADD requirements.txt /code/
 RUN pip install -r requirements.txt -i https://mirror.baidu.com/pypi/simple

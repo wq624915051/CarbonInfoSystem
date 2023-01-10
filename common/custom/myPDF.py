@@ -7,7 +7,6 @@ import json
 import time
 import fitz
 import pdfplumber
-import pytesseract
 import numpy as np 
 from PIL import Image
 from django.conf import settings
@@ -62,7 +61,6 @@ class MyPDF():
                 img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}.png")
                 self.save_image_page(image, img_save_path)  
 
-                # 利用Tesseract获取图片中的文本
                 # page_info["content"] = self.get_image_content_by_Tesseract(img_save_path) 
 
                 # 利用paddleocr进行版面分析和文字提取
@@ -201,7 +199,7 @@ class MyPDF():
         img_binary = img_gray.point(lambda x: 0 if x < avg_gray else 255)
 
         # 使用 Tesseract 识别
-        content = pytesseract.image_to_string(img_gray, lang='chi_sim')
+        content = ""
         return content
 
     def get_pdf_content(self):
