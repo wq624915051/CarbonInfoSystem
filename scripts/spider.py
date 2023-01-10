@@ -1586,7 +1586,7 @@ class Spider():
         描述：
             将信息写入日志文件
         """
-        log_info = f'{filename}\n{info}\n{"#"*10}\n'
+        log_info = f'{filename}\n{info}\n{"=="*40}\n'
         with open('log.txt', 'a', encoding='utf-8') as f:
             f.write(log_info)
 
