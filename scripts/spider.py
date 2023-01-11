@@ -1509,7 +1509,7 @@ class Spider():
         # 等待时间
         self.timeout = 60*60  # 60分钟
         # pdf文件所在的文件夹
-        self.pdf_base_path = '/code/media/uploads/pdfs_test'
+        self.pdf_base_path = './media/uploads/pdfs_test'
         self.pno_dict = self.get_pno_dict(filepath='pno.csv')
 
     def run(self):
@@ -1526,7 +1526,7 @@ class Spider():
         if systemId not in [1, 2]:
             raise Exception("systemId参数错误")
 
-        filepath = os.path.join(self.pdf_base_path, f"{filename}.PDF")
+        filepath = os.path.join(self.pdf_base_path, f"{filename}")
         filepath = filepath.replace("\\", "/")
 
         data = {
