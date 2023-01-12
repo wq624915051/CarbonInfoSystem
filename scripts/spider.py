@@ -1513,15 +1513,17 @@ class Spider():
         self.pno_dict = self.get_pno_dict(filepath='pno.csv')
 
     def run(self):
+        self.write_to_log("START RUN", "success")
         for filename, (pno_start, pno_end) in self.pno_dict.items():
             self.spider(filename, pno_start, pno_end, 1)
             self.spider(filename, pno_start, pno_end, 2)
 
     def spider(self, filename, pno_start, pno_end, systemId):
-        url = "http://101.42.10.168:10086/api/calculate"
+        url = "http://127.0.0.1:12345/api/calculate"
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36',
             "Content-Type": "application/json",
+            "Connection":"keep-alive",
         }
         if systemId not in [1, 2]:
             raise Exception("systemId参数错误")
