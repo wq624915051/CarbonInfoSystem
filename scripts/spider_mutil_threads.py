@@ -67,7 +67,7 @@ class Crawl_thread(threading.Thread):
         if systemId not in [1, 2]:
             raise Exception("systemId参数错误")
 
-        filepath = os.path.join(self.pdf_base_path, f"{filename}.PDF")
+        filepath = os.path.join(self.pdf_base_path, filename)
         filepath = filepath.replace("\\", "/")
 
         data = {
