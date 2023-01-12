@@ -62,7 +62,7 @@ class PdfProcessor():
         返回值：
             page_info: 页面信息
         '''
-        print("single")
+        # print("single")
         # 保存PDF页面图片
         now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}_{now}.png")
@@ -72,7 +72,7 @@ class PdfProcessor():
         # 利用 PPStructure 和 paddleocr 进行版面分析和文字提取
         structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
         error_axis_x = 50 if self.is_single_colum(structure=structure) else 5 # 单栏双栏判断
-        print(error_axis_x)
+        # print(error_axis_x)
 
 
         page_info = {"pno": pno} # 页面信息
@@ -80,7 +80,7 @@ class PdfProcessor():
         page_info["image_count"] = self.get_image_count(structure) # 图片数量
         page_info["table_count"] = self.get_table_count(structure) # 表格数量
         page_info["new_structure"] = self.get_image_table_count(structure) # 每一块下方的图片数量和表格数量
-        print(page_info["content"])
+        # print(page_info["content"])
 
         return page_info
 
@@ -95,7 +95,7 @@ class PdfProcessor():
             page_info: 页面信息
         '''
         # PDF页面图片存储路径
-        print("double")
+        # print("double")
         now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         img_left_save_path = os.path.join(self.media_root, 'temp_images', f"images_left_{pno}_{now}.png")
         img_right_save_path = os.path.join(self.media_root, 'temp_images', f"images_right_{pno}_{now}.png")
@@ -118,13 +118,13 @@ class PdfProcessor():
 
         error_axis_x_left = 50 if self.is_single_colum(structure=structure_left) else 5 # 单栏双栏判断
         error_axis_x_right = 50 if self.is_single_colum(structure=structure_right) else 5 # 单栏双栏判断
-        print(error_axis_x_left)
-        print(error_axis_x_right)
+        # print(error_axis_x_left)
+        # print(error_axis_x_right)
 
         content = self.get_content_by_PaddleOCR(structure_left, img_left_save_path, error_axis_x_left)
-        print(content)
+        # print(content)
         content += self.get_content_by_PaddleOCR(structure_right, img_right_save_path, error_axis_x_right)
-        print(self.get_content_by_PaddleOCR(structure_right, img_right_save_path, error_axis_x_right))
+        # print(self.get_content_by_PaddleOCR(structure_right, img_right_save_path, error_axis_x_right))
         image_count = self.get_image_count(structure_left) + self.get_image_count(structure_right)
         table_count = self.get_table_count(structure_left) + self.get_table_count(structure_right)
         new_structure = self.get_image_table_count(structure_left) + self.get_image_table_count(structure_right)
@@ -328,7 +328,7 @@ class PdfProcessor():
         for item in structure:
             middle_point.append(item["middle_point"])
         sorted_middle_point = sorted(middle_point, key= lambda t:t[1]) # 按照纵坐标升序
-        print(sorted_middle_point)
+        # print(sorted_middle_point)
         for index in range(0,len(sorted_middle_point) - 1):
             temp1 = sorted_middle_point[index + 1][0] - sorted_middle_point[index][0] # 横坐标差值
             temp2 = sorted_middle_point[index + 1][1] - sorted_middle_point[index][1] # 纵坐标差值
