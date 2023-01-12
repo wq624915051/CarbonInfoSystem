@@ -5,6 +5,7 @@ import os
 import re
 import sys
 import json
+import datetime
 import requests
 import threading
 from time import sleep
@@ -27,16 +28,16 @@ class Crawl_thread(threading.Thread):
         self.queue = queue # 任务队列
         self.timeout = 60*60  # 等待时间60分钟
         # pdf文件所在的文件夹
-        self.pdf_base_path = '/code/media/uploads/pdfs_test'
+        self.pdf_base_path = './media/uploads/pdfs_test'
     
     def run(self):
         '''
         线程在调用过程中就会调用对应的run方法
         :return:
         '''
-        print(f'启动线程：{self.thread_id}')
+        my_logger.info(f'启动线程：{self.thread_id}')
         self.crawl_spider()
-        print(f'退出了该线程：{self.thread_id}')
+        my_logger.info(f'退出线程：{self.thread_id}')
 
     def crawl_spider(self):
         while True:
@@ -44,23 +45,24 @@ class Crawl_thread(threading.Thread):
                 break
             else:
                 filename, pno_start, pno_end = self.queue.get()
-                print(f"当前工作的线程为：{self.thread_id}, 正在采集：{filename} 系统1")
+                my_logger.info(f"当前工作的线程为：{self.thread_id}, 正在采集：{filename} 系统1")
                 try:
                     self.my_spider(filename, pno_start, pno_end, 1)
                 except Exception as e:
-                    print(f'错误: {str(e)}')
+                    my_logger.error(f'错误: {str(e)}')
                 
-                print(f"当前工作的线程为：{self.thread_id}, 正在采集：{filename} 系统2")
+                my_logger.info(f"当前工作的线程为：{self.thread_id}, 正在采集：{filename} 系统2")
                 try:
                     self.my_spider(filename, pno_start, pno_end, 2)
                 except Exception as e:
-                    print(f'错误: {str(e)}')
+                    my_logger.error(f'错误: {str(e)}')
     
-    def my_spider(self, filename, pno_start, pno_end, systemId):
-        url = "http://101.42.10.168:10086/api/calculate"
+    def my_spider(self, filename, pno_start, pno_end, systemId, ip="127.0.0.1", port="12345"):
+        url = f"http://{ip}:{port}/api/calculate"
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36',
             "Content-Type": "application/json",
+            "Connection":"keep-alive",
         }
         if systemId not in [1, 2]:
             raise Exception("systemId参数错误")
@@ -84,7 +86,8 @@ class Crawl_thread(threading.Thread):
         }
 
         # 发送请求
-        response = requests.post(url, headers=headers, data=json.dumps(data), timeout=self.timeout)
+        session = requests.session()
+        response = session.post(url, headers=headers, data=json.dumps(data), timeout=self.timeout)
         response.encoding = response.apparent_encoding
 
         # 获取响应内容
@@ -92,16 +95,23 @@ class Crawl_thread(threading.Thread):
         content = content.__str__()
         message = re.findall(r'"msg": "(.*?)"', content)
         message = message[0] if len(message) else "Error: 没找到message"
+        log_info = f'{filename} 系统{systemId}: {message}\n{"=="*40}\n'
+
+        if message == "success":
+            my_logger.info(f"{log_info}")
+        else:
+            my_logger.error(f"{log_info}")
 
         global writable
         while True:
             if writable:
                 writable = False # 保证只有一个线程写入日志文件
-                write_to_log(filename, message)
+                write_to_log(log_info)
                 writable = True # 释放锁
                 break
             else:
                 sleep(1)
+    
 
 def get_pno_queue(filepath='pno.csv'):
     """
@@ -112,7 +122,7 @@ def get_pno_queue(filepath='pno.csv'):
     """
     with open(filepath, 'r', encoding='utf-8') as f:
         text = f.read()
-    pno_queue =  Queue(100) # PDF任务队列
+    pno_queue =  Queue(400) # PDF任务队列
     lines = text.split('\n')
     for line in lines:
         line = line.split(',')
@@ -130,25 +140,22 @@ def get_pno_queue(filepath='pno.csv'):
 
     return pno_queue
 
-def write_to_log(filename, info):
+def write_to_log(log_info, log_filepath='log_mutil.txt'):
     """
     描述：
         将信息写入日志文件
     """
-    log_info = f'{filename}\n{info}\n{"=="*40}\n'
-    with open('log.txt', 'a', encoding='utf-8') as f:
+    with open(log_filepath, 'a', encoding='utf-8') as f:
         f.write(log_info)
 
-    if info == "success":
-        my_logger.info(f"{filename} 成功")
-    else:
-        my_logger.error(f"{filename} 失败 {info}")
-    
-
-
 def main():
+    # 开始日志
+    now_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    write_to_log(f"\n\n{now_time}: START RUN \n")
+    my_logger.info('程序开始运行')
+
     # 初始化PDF任务队列
-    pno_queue = get_pno_queue(filepath='pno.csv')
+    pno_queue = get_pno_queue(filepath='pno_mutil.csv')
     
     # 初始化采集线程
     threads_list = []
@@ -163,7 +170,7 @@ def main():
     for t in threads_list:
         t.join()
     
-    print('结束')
+    my_logger.info('程序结束运行')
 
 
 if __name__ == '__main__':
