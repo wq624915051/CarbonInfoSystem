@@ -6,11 +6,11 @@ from colorama import Fore,Style
 def get_logger():
     # 获取对象
     logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     if not logger.handlers:
         ch = logging.StreamHandler(sys.stdout)
-        ch.setLevel(logging.DEBUG)
+        ch.setLevel(logging.INFO)
         logger.addHandler(ch)
     return logger
 
