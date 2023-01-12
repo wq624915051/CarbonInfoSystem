@@ -165,6 +165,7 @@ def main():
         thread = Crawl_thread(thread_id, pno_queue)
         thread.start() # 启动线程
         threads_list.append(thread)
+        sleep(1) # 错开进程时间
     
     # 等待所有线程完成
     for t in threads_list:

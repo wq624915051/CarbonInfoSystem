@@ -5,6 +5,8 @@ PdfProcessor类
 import os
 import re
 import fitz
+import random
+import string
 import datetime
 import pdfplumber
 import numpy as np
@@ -65,7 +67,8 @@ class PdfProcessor():
         # print("single")
         # 保存PDF页面图片
         now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}_{now}.png")
+        suffix = ''.join(random.sample(string.ascii_letters + string.digits, 8))
+        img_save_path = os.path.join(self.media_root, 'temp_images', f"images_{pno}_{suffix}_{now}.png")
         page.get_pixmap(matrix=self.mat).save(img_save_path)
         self.img_save_paths.append(img_save_path)
 
@@ -97,8 +100,10 @@ class PdfProcessor():
         # PDF页面图片存储路径
         # print("double")
         now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        img_left_save_path = os.path.join(self.media_root, 'temp_images', f"images_left_{pno}_{now}.png")
-        img_right_save_path = os.path.join(self.media_root, 'temp_images', f"images_right_{pno}_{now}.png")
+        suffix_1 = ''.join(random.sample(string.ascii_letters + string.digits, 8))
+        suffix_2 = ''.join(random.sample(string.ascii_letters + string.digits, 8))
+        img_left_save_path = os.path.join(self.media_root, 'temp_images', f"images_left_{pno}_{suffix_1}_{now}.png")
+        img_right_save_path = os.path.join(self.media_root, 'temp_images', f"images_right_{pno}_{suffix_2}_{now}.png")
         self.img_save_paths.append(img_left_save_path)
         self.img_save_paths.append(img_right_save_path)
 
