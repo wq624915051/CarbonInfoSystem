@@ -95,10 +95,9 @@ class PdfProcessor():
         '''
         # PDF页面图片存储路径
         now = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        suffix_1 = ''.join(random.sample(string.ascii_letters + string.digits, 8))
-        suffix_2 = ''.join(random.sample(string.ascii_letters + string.digits, 8))
-        img_left_save_path = os.path.join(self.media_root, 'temp_images', f"images_left_{pno}_{suffix_1}_{now}.png")
-        img_right_save_path = os.path.join(self.media_root, 'temp_images', f"images_right_{pno}_{suffix_2}_{now}.png")
+        suffix = ''.join(random.sample(string.ascii_letters + string.digits, 8))
+        img_left_save_path = os.path.join(self.media_root, 'temp_images', f"images_left_{pno}_{suffix}_{now}.png")
+        img_right_save_path = os.path.join(self.media_root, 'temp_images', f"images_right_{pno}_{suffix}_{now}.png")
         self.img_save_paths.append(img_left_save_path)
         self.img_save_paths.append(img_right_save_path)
 
