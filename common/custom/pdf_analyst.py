@@ -53,6 +53,7 @@ class PdfAnalyst():
         self.date = datetime.datetime.now().strftime('%Y%m%d')
 
         self.pdf = PdfProcessor(self.filepath, media_root=settings.MEDIA_ROOT) # 提取PDF内容存储到self.pdf.document_info
+        self.pdf.run()
         self.keywords_normal = ["碳", "绿色", "环保"]
 
         # 读取ESG数据

@@ -39,6 +39,10 @@ class PdfProcessor():
         self.mat = fitz.Matrix(self.zoom_x, self.zoom_y) # 缩放矩阵
         self.y_threshold = 300 # y轴阈值
 
+    def run(self):
+        """
+        描述: PDF处理
+        """
         self.document_info = [] # PDF每一页的信息
         self.img_save_paths = [] # 保存图片的路径
         for pno, page in enumerate(self.documnet):
