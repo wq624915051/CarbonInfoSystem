@@ -5,12 +5,15 @@ PdfProcessor类
 import os
 import re
 import fitz
+import time
 import random
 import string
 import datetime
 import pdfplumber
 import numpy as np
 from common.custom.ocr import MyOCR
+from multiprocessing import Pool
+from pathos.multiprocessing import Pool as PathosPool
 
 
 class PdfProcessor():
@@ -38,6 +41,7 @@ class PdfProcessor():
         self.zoom_y = 2.0 # 缩放比例
         self.mat = fitz.Matrix(self.zoom_x, self.zoom_y) # 缩放矩阵
         self.y_threshold = 300 # y轴阈值
+        self.processing_number = 4 # 处理的进程数
 
     def run(self):
         """
@@ -54,6 +58,29 @@ class PdfProcessor():
 
             self.document_info.append(page_info) # 添加到文档信息中
         
+        self.delete_images(self.img_save_paths) # 删除临时图片
+        self.pdfplumber.close() # 关闭pdfplumber
+
+    def run_multiprocessing(self):
+        """
+        描述: 多进程PDF处理
+        # FIXME: 有bug，待修复
+        """
+        self.img_save_paths = [] # 保存图片的路径
+        self.mutil_process_res = [] # 进程池中的结果
+        processing_pool = PathosPool(self.processing_number) # 创建进程池
+        for pno, page in enumerate(self.documnet):
+            rect = page.rect
+            if rect.width / rect.height <= 1.4:
+                page_info = processing_pool.apply_async(self.single_page, args=(pno, page,))
+            else:
+                page_info = processing_pool.apply_async(self.double_page, args=(pno, page,))
+            self.mutil_process_res.append(page_info)
+            time.sleep(0.5)
+        
+        processing_pool.close() # 关闭进程池
+        processing_pool.join() # 等待进程池中的进程执行完毕
+        self.document_info = [res.get() for res in self.mutil_process_res] # 获取进程池中的结果
         self.delete_images(self.img_save_paths) # 删除临时图片
         self.pdfplumber.close() # 关闭pdfplumber
 
@@ -77,7 +104,6 @@ class PdfProcessor():
         # 利用 PPStructure 和 paddleocr 进行版面分析和文字提取
         structure = self.pdf_ocr.get_structure(img_save_path) # 速度比较慢
         error_axis_x = 50 if self.is_single_colum(structure=structure) else 5 # 单栏双栏判断
-
 
         page_info = {"pno": pno} # 页面信息
         page_info["content"] = self.get_content_by_PaddleOCR(structure, img_save_path, error_axis_x) # 页面内容 by PaddleOCR [速度慢]
