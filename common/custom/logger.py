@@ -1,51 +1,57 @@
 import sys
 import logging
 import datetime
-from colorama import Fore,Style
-
-def get_logger():
-    # 获取对象
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-
-    if not logger.handlers:
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setLevel(logging.INFO)
-        logger.addHandler(ch)
-    return logger
-
+from colorama import Fore, Style
 
 class Log:
-    #通过静态成员方法来调用
-    logger = get_logger()
-    # 获取当前时间
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    def __init__(self, level="info") -> None:
+        self.logger = self.get_logger(level)
 
-    @staticmethod
-    def debug(msg):
-        Log.logger.debug(Fore.WHITE + f"{Log.now}\t[DEBUG]: {str(msg)}" +  Style.RESET_ALL)
+    def debug(self, msg):
+        self.logger.debug(Fore.WHITE + f"{self.get_now()}\t[DEBUG]: {str(msg)}" + Style.RESET_ALL)
+    
+    def info(self, msg):
+        self.logger.info(Fore.GREEN + f"{self.get_now()}\t[INFO]: {str(msg)}" + Style.RESET_ALL)
+    
+    def warning(self, msg):
+        self.logger.warning(Fore.YELLOW + f"{self.get_now()}\t[WARNING]: {str(msg)}" + "\033[m")
+    
+    def error(self, msg):
+        self.logger.error(Fore.RED + f"{self.get_now()}\t[ERROR]: {str(msg)}" + Style.RESET_ALL)
+    
+    def critical(self, msg):
+        self.logger.critical(Fore.RED + f"{self.get_now()}\t[CRITICAL]: {str(msg)}" + Style.RESET_ALL)
 
-    @staticmethod
-    def info(msg):
-        Log.logger.info(Fore.GREEN + f"{Log.now}\t[INFO]: {str(msg)}" + Style.RESET_ALL)
+    def get_now(self):
+        return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    @staticmethod
-    def warning(msg):
-        Log.logger.warning(Fore.YELLOW + f"{Log.now}\t[WARNING]: {str(msg)}" + "\033[m")
+    def get_logger(self, level="info"):
+        if level == "debug":
+            level = logging.DEBUG
+        elif level == "info":
+            level = logging.INFO
+        elif level == "warning":
+            level = logging.WARNING
+        elif level == "error":
+            level = logging.ERROR
+        elif level == "critical":
+            level = logging.CRITICAL
+        else:
+            level = logging.INFO
+        # 获取对象
+        logger = logging.getLogger()
+        logger.setLevel(level)
 
-    @staticmethod
-    def error(msg):
-        Log.logger.error(Fore.RED + f"{Log.now}\t[ERROR]: {str(msg)}" + Style.RESET_ALL)
-
-    @staticmethod
-    def critical(msg):
-        Log.logger.critical(Fore.RED + f"{Log.now}\t[CRITICAL]: {str(msg)}" + Style.RESET_ALL)
-
-my_logger = Log()
+        if not logger.handlers:
+            ch = logging.StreamHandler(sys.stdout)
+            ch.setLevel(level)
+            logger.addHandler(ch)
+        return logger
 
 if __name__ == '__main__':
-    my_logger.debug("你")
-    my_logger.info("好")
-    my_logger.warning("世")
-    my_logger.error("界")
-    my_logger.critical("！")
+    loggg = Log(level="warning")
+    loggg.debug("你")
+    loggg.info("好")
+    loggg.warning("世")
+    loggg.error("界")
+    loggg.critical("！")
