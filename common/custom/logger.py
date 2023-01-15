@@ -48,6 +48,8 @@ class Log:
             logger.addHandler(ch)
         return logger
 
+my_logger = Log()
+
 if __name__ == '__main__':
     loggg = Log(level="warning")
     loggg.debug("你")
