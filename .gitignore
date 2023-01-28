@@ -6,7 +6,7 @@ media/temp_images/*
 test.*
 log.txt
 pno*.csv
-
+downlodes/*
 # except for .gitkeep
 !.gitkeep
 
