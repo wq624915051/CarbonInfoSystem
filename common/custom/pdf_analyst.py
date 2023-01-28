@@ -331,9 +331,13 @@ class PdfAnalyst():
                     score = self.ESG_data[self.company_code][self.year]["股权融资优势"]
                     return "", score
                 else:
-                    raise Exception(f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此年的股权融资优势数据")
+                    score = 0
+                    return f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此年的股权融资优势数据", score
+                    # raise Exception(f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此年的股权融资优势数据")
             else:
-                raise Exception(f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此企业的股权融资优势数据")
+                score = 0
+                return f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此企业的股权融资优势数据", score
+                # raise Exception(f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此企业的股权融资优势数据")
 
         elif name == "wind ESG评级":
             if self.company_code in self.ESG_data.keys():
@@ -341,9 +345,13 @@ class PdfAnalyst():
                     score = self.ESG_data[self.company_code][self.year]["ESG评级"]
                     return "", score
                 else:
-                    raise Exception(f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此年的Wind ESG评级数据")
+                    score = 0
+                    return f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此年的Wind ESG评级数据", score
+                    # raise Exception(f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此年的Wind ESG评级数据")
             else:
-                raise Exception(f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此企业的Wind ESG评级数据")
+                score = 0
+                return f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此企业的Wind ESG评级数据", score
+                # raise Exception(f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此企业的Wind ESG评级数据")
 
         else:
             # 段落中含有 第一类关键词 的句子
