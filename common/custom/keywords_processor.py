@@ -292,7 +292,7 @@ def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2, keywords
     else:
         raise ValueError("keywords_type只能是single或double")
     
-    pattern = r'[^。!！?？]*[。!！?？]' # 定义正则表达式，用于匹配句子
+    pattern = r'[^。!！?？;；,，:：]*[。!！?？;；,，:：]' # 定义正则表达式，用于匹配句子
     result_sentences = [] # 保存结果
     for pno, paragraph in pno_paragraphs:
         # 使用正则表达式查找所有句子的位置
