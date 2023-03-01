@@ -279,6 +279,8 @@ class PdfProcessor():
                 item["image_count"] = 0
                 item["table_count"] = 0
                 for j in range(i+1, len(new_structure)):
+                    # FIXME 下一块在当前块的上方，这个判断值为负数，需要修改
+                    # FIXME 双列情况
                     if new_structure[j]["axis_y_top"] - item["axis_y_bottom"] < y_threshold:
                         # 如果下一块的顶部y坐标与当前块的底部y坐标的差小于阈值，则计数
                         if new_structure[j]["type"] == "figure":
