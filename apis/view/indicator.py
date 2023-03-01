@@ -10,6 +10,51 @@ from common.custom.excel_processor import read_indicators_from_excel1
 from common.custom.excel_processor import read_indicators_from_excel2
 from common.custom.keywords_processor import preprocess_keywords
 
+
+@csrf_exempt
+def process_keywords(request):
+    '''
+    描述：处理三级指标关键词
+    方法：POST
+    参数：
+        type: 关键词上传类型 'file' | 'keywords'
+        keywords: 关键词
+        file: 关键词文件 (.txt文件 一行一个关键词)
+    返回值:
+        keywords: 关键词
+    '''
+    if request.method == 'GET':
+        my_logger.error("请使用POST方法")
+        return retJson(code=0, msg="请使用POST方法")
+    elif request.method == 'POST':
+        try: 
+            type = request.POST.get('type')
+
+            if type == 'file':
+                file = request.FILES.get('file')
+                if not file:
+                    my_logger.error("请上传关键词文件")
+                    return retJson(code=0, msg="请上传关键词文件")
+                keywords = file.read().decode('utf-8')
+
+            elif type == 'keywords':
+                keywords = request.POST.get('keywords')
+                if not keywords:
+                    my_logger.error("请填写关键词")
+                    return retJson(code=0, msg="请填写关键词")
+            
+            else:
+                my_logger.error("关键词类型需为 'file' | 'keywords'")
+                return retJson(code=0, msg="关键词类型需为 'file' | 'keywords'")
+
+            # 处理keywords
+            keywords = preprocess_keywords(keywords)
+
+            return retJson(code=1, msg="success", data={"keywords": keywords})
+        except Exception as e:
+            my_logger.error(f"{str(logging.exception(e))}")
+            return retJson(code=0, msg=str(e))
+
 @csrf_exempt
 def add_indicators(request):
     '''

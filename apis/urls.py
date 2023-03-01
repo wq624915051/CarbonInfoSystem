@@ -6,4 +6,5 @@ urlpatterns = [
     path('indicators', api_views.get_indicators, name='indicators'),
     path('add_indicators', api_views.add_indicators, name='add_indicators'),
     path('calculate', api_views.calculate, name='calculate'),
+    path('process_keywords', api_views.process_keywords, name='process_keywords'),
 ]
