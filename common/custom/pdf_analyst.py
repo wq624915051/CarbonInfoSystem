@@ -5,6 +5,8 @@ AnalysisPDF类
 import os
 import re
 import datetime
+import jieba
+import sys
 
 from django.conf import settings
 from common.base.base_respons import retJson
@@ -404,9 +406,14 @@ class PdfAnalyst():
         返回值：
             count: int 常用词数量
         '''
+        words = jieba.lcut(content) 
+        count = 0
+        for word in self.common_words: #直接遍历一遍即可
+            if word in words:
+                count += 1
         # count_list = [content.count(word) for word in self.common_words] # 统计单词出现的次数
-        count_list = [word in content for word in self.common_words] # 统计单词是否出现
-        return sum(count_list)
+        # count_list = [word in content for word in self.common_words] # 统计单词是否出现
+        return count
     
     def get_professional_words_count(self, content):
         '''
@@ -416,9 +423,14 @@ class PdfAnalyst():
         返回值：
             count: int 专业词数量
         '''
+        words = jieba.lcut(content)
+        count = 0
+        for word in self.professional_words:
+            if word in words:
+                count += 1
         # count_list = [content.count(word) for word in self.professional_words] # 统计单词出现的次数
-        count_list = [word in content for word in self.professional_words] # 统计单词是否出现
-        return sum(count_list)
+        # count_list = [word in content for word in self.professional_words] # 统计单词是否出现
+        return count
 
     def get_number_count(self, content):
         """
