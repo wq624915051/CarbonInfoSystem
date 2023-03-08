@@ -5,6 +5,7 @@ AnalysisPDF类
 import os
 import re
 import datetime
+import numpy as np
 
 from django.conf import settings
 from common.base.base_respons import retJson
@@ -354,6 +355,58 @@ class PdfAnalyst():
                 return f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此企业的Wind ESG评级数据", score
                 # raise Exception(f"{self.company_code}_{self.company_name}_{self.year}.PDF 未找到此企业的Wind ESG评级数据")
 
+        elif name == "充分披露了企业碳排放相关信息（即完整披露确碳、减碳、抵碳的核心题项）":
+            # 计算前三个一级指标的平均分
+            score_list = []
+            for indicator_level_1 in self.indicators:
+                for indicator_level_2 in indicator_level_1["二级指标"]:
+                    for indicator_level_3 in indicator_level_2["三级指标"]:
+                        score_list.append(indicator_level_3["最终得分"])
+            score = np.average(score_list)
+            return "", score
+
+        elif name == "企业披露的碳排放量涵盖了组织边界和运营边界以内的总排放量":
+            score_var1 = self.indicators[0]["二级指标"][0]["三级指标"][0]["最终得分"]
+            score_var2 = self.indicators[0]["二级指标"][0]["三级指标"][1]["最终得分"]
+            score = 1 if (score_var1 != 0 or score_var2 != 0) else 0
+            return "", score
+        
+        elif name == "使用数字进行信息披露的程度（披露了范围一、范围二、范围三的碳排放量或者能源消耗量（电、煤、石油天然气等）的具体值）":
+            # 范围一
+            range_1_key_2 = ["范围一", "范畴一"]
+            range_1_key_3 = ["二氧化碳当量", "排放量", "直接"]
+            # 范围二
+            range_2_key_2 = ["范围二", "范畴二"]
+            range_2_key_3 = ["二氧化碳当量", "间接", "外购"]
+            # 范围三
+            range_3_key_2 = ["范围三", "范畴三"]
+            range_3_key_3 = ["二氧化碳当量"]
+            # 能源消耗量
+            energy_key_1 = ["能源消耗量", "能源消耗密度", "能源消费量", "总能耗", "综合能耗"]
+
+            range_1 = get_sentences_with_keywords(self.relevant_pno_paragraphs, range_1_key_2, range_1_key_3, keywords_type="double")
+            range_2 = get_sentences_with_keywords(self.relevant_pno_paragraphs, range_2_key_2, range_2_key_3, keywords_type="double")
+            range_3 = get_sentences_with_keywords(self.relevant_pno_paragraphs, range_3_key_2, range_3_key_3, keywords_type="double")
+            energy = get_sentences_with_keywords(self.relevant_pno_paragraphs, energy_key_1, keywords_2=[], keywords_type="single")
+
+            range_1_num = len(remove_duplicate([item[1].strip() for item in range_1]))
+            range_2_num = len(remove_duplicate([item[1].strip() for item in range_2]))
+            range_3_num = len(remove_duplicate([item[1].strip() for item in range_3]))
+            energy_num = len(remove_duplicate([item[1].strip() for item in energy]))
+
+            range_1_score = 1 if range_1_num > 0 else 0
+            range_2_score = 1 if range_2_num > 0 else 0
+            range_3_score = 1 if range_3_num > 0 else 0
+            energy_score = 1 if energy_num > 0 else 0
+
+            score = range_1_score + range_2_score + range_3_score
+            if score != 0:
+                return "", score + 1
+            elif energy_score == 1:
+                return "", 1
+            else:
+                return "", 0
+
         else:
             # 段落中含有 第一类关键词 的句子
             pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_1, keywords_2=[], keywords_type="single")
@@ -430,6 +483,8 @@ class PdfAnalyst():
         """
         # 去除无用数字
         content = self.remove_useless_number(content)
+        # 去除字符串开头的数字
+        content = re.sub(r"^\d+", "", content)
         # 匹配所有数字
         numbers = re.findall(r"\d+\.?\d*", content)
         return len(numbers)   
