@@ -41,6 +41,7 @@ class PdfProcessor():
         self.zoom_y = 2.0 # 缩放比例
         self.mat = fitz.Matrix(self.zoom_x, self.zoom_y) # 缩放矩阵
         self.y_threshold = 300 # y轴阈值
+        self.x_threshold = 20 # x轴阈值
         self.processing_number = 4 # 处理的进程数
 
     def run(self):
@@ -161,6 +162,7 @@ class PdfProcessor():
             "table_count": table_count,
             "new_structure": new_structure
         } 
+        print(page_info)
         return page_info
 
     def get_content_by_PPStructure(self, structure):
@@ -260,11 +262,14 @@ class PdfProcessor():
         # 新的版面结构，包含每一块的类型、y坐标、[内容]
         new_structure = []
         for item in structure:
+            axis_x_top  = item["bbox"][0]
             axis_y_top  = item["bbox"][1]
+            axis_x_bottom = item["bbox"][2]
             axis_y_bottom = item["bbox"][3]
             axis_y_mean = np.mean([axis_y_top, axis_y_bottom])
-            tmp = {"type": item["type"], "axis_y_top": axis_y_top,
-                    "axis_y_bottom": axis_y_bottom, "axis_y_mean": axis_y_mean}
+            axis_x_mean = np.mean([axis_x_top, axis_x_bottom])
+            tmp = {"type": item["type"], "axis_y_top": axis_y_top, "axis_x_top": axis_x_top, 
+                    "axis_y_bottom": axis_y_bottom, "axis_x_bottom": axis_x_bottom, "axis_y_mean": axis_y_mean, "axis_x_mean": axis_x_mean}
             if item["type"] == "text":
                 content = "".join([line["text"] for line in item["res"]])
                 tmp["content"] = content
@@ -273,7 +278,6 @@ class PdfProcessor():
                 new_structure.append(tmp)
         
         # 遍历每一块，获取阈值内的图片数量和表格数量
-        y_threshold = self.y_threshold # y坐标的阈值
         for i, item in enumerate(new_structure):
             if item["type"] == "text":
                 item["image_count"] = 0
@@ -281,8 +285,8 @@ class PdfProcessor():
                 for j in range(i+1, len(new_structure)):
                     # FIXME 下一块在当前块的上方，这个判断值为负数，需要修改
                     # FIXME 双列情况
-                    if new_structure[j]["axis_y_top"] - item["axis_y_bottom"] < y_threshold:
-                        # 如果下一块的顶部y坐标与当前块的底部y坐标的差小于阈值，则计数
+                    if new_structure[j]["axis_y_top"] - item["axis_y_bottom"] < self.y_threshold and new_structure[j]["axis_x_mean"] - item["axis_x_mean"] < self.x_threshold:
+                        # 如果下一块的顶部y坐标与当前块的底部y坐标的差小于阈值，且下一块的x轴与当前块的x轴相差小于阈值（在同一排）则计数
                         if new_structure[j]["type"] == "figure":
                             item["image_count"] += 1
                         elif new_structure[j]["type"] == "table":

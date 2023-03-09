@@ -311,7 +311,7 @@ def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2, keywords
 
     return result_sentences
 
-def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3, keywords_type):
+def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3, keywords_type, sentences):
     """
     描述：
         获取表格和图片数量, 句子中首先必须包含keywords_1中的关键词
@@ -325,6 +325,7 @@ def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3, key
         keywords_type: 
             single: 只有keywords_1, keywords_2
             double: 有keywords_1, keywords_2, keywords_3
+        sentences: list 匹配到的句子
     返回值：
         table_count: int 表格数量
         image_count: int 图片数量
@@ -340,7 +341,7 @@ def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3, key
         raise ValueError("keywords_type只能是single或double")
 
     table_count = 0
-    image_count = 0
+    image_count = 0 
     founded_list  = [] # 用于存储已经匹配到的句子
     for idx_page, page_info in enumerate(document_info):
         content = page_info["content"] # 获取每一页的文本内容
@@ -351,10 +352,11 @@ def get_table_image_count(document_info, keywords_1, keywords_2, keywords_3, key
                 structure = page_info["new_structure"] # 获取每一页的结构化信息
                 for idx_item, item in enumerate(structure):
                     # 如果当前句子的内容中包含关键词2和关键词3，且当前句子没有被匹配过，则进行下一步处理
-                    if word_2 in item["content"]  and word_3 in item["content"] and (idx_page, idx_item) not in founded_list:
-                        founded_list.append((idx_page, idx_item))
-                        table_count += item["table_count"]
-                        image_count += item["image_count"]
+                    for sentence in sentences:
+                        if word_2 in item["content"] and word_3 in item["content"] and sentence in item["content"] and (idx_page, idx_item) not in founded_list:
+                            founded_list.append((idx_page, idx_item))
+                            table_count += item["table_count"]
+                            image_count += item["image_count"]
     return table_count, image_count
 
 def ignore_sentences_with_keywords(in_sentences):
