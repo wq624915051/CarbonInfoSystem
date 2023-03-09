@@ -206,10 +206,10 @@ class PdfAnalyst():
             pno_paragraphs = get_management_speech_paragraphs(self.pdf.document_info, self.pno_start, self.pno_end)
             # 段落中含有碳、环保、绿色的句子
             pno_sentences = get_sentences_with_keywords(pno_paragraphs, self.keywords_normal, keywords_2=[], keywords_type="single")
-            # 获取表格和图片数量
-            table_count, image_count = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_special, keywords_3=[], keywords_type="single")
             # 高管致辞部分不需要去重
             sentences = remove_duplicate([item[1].strip() for item in pno_sentences])
+            # 获取表格和图片数量
+            table_count, image_count = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_special, keywords_3=[], keywords_type="single", sentences=sentences)
         elif name == "减少的二氧化碳降低百分比":
             # 段落中含有 关键词 的句子
             keywords_1.append("二氧化碳排放下降")
@@ -219,28 +219,30 @@ class PdfAnalyst():
             pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_1, keywords_2=[], keywords_type="single")
             # 添加 段落中同时含有 第二类关键词和第三类关键词 的句子
             pno_sentences.extend(get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_2, keywords_3, keywords_type="double"))
+            sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
 
             # 获取表格和图片数量 第一类关键词
-            table_count_1, image_count_1 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_1, keywords_3=[], keywords_type="single")
+            table_count_1, image_count_1 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_1, keywords_3=[], keywords_type="single", sentences=sentences)
             
             # 获取表格和图片数量 第二类关键词和第三类关键词
-            table_count_2, image_count_2 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_2, keywords_3, keywords_type="double")
+            table_count_2, image_count_2 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_2, keywords_3, keywords_type="double", sentences=sentences)
 
             table_count = table_count_1 + table_count_2
             image_count = image_count_1 + image_count_2
-            sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
+            
         else:
             # 段落中含有 第一类关键词 的句子
             pno_sentences = get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_1, keywords_2=[], keywords_type="single")
             # 添加 段落中同时含有 第二类关键词和第三类关键词 的句子
             pno_sentences.extend(get_sentences_with_keywords(self.relevant_pno_paragraphs, keywords_2, keywords_3, keywords_type="double"))
 
+            sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子    
             # 获取表格和图片数量
-            table_count_1, image_count_1 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_1, keywords_3=[], keywords_type="single")
-            table_count_2, image_count_2 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_2, keywords_3, keywords_type="double")
+            table_count_1, image_count_1 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_1, keywords_3=[], keywords_type="single", sentences=sentences)
+            table_count_2, image_count_2 = get_table_image_count(self.pdf.document_info, self.keywords_normal, keywords_2, keywords_3, keywords_type="double", sentences=sentences)
             table_count = table_count_1 + table_count_2
             image_count = image_count_1 + image_count_2
-            sentences = self.get_nonrepeated_sentences(pno_sentences) # 去除与之前指标相重复的句子
+
         
         content = "\n".join(sentences) # 拼接成字符串
 
@@ -271,13 +273,15 @@ class PdfAnalyst():
             "企业披露的碳排放量涵盖了组织边界和运营边界以内的总排放量",
             "充分披露了企业碳排放相关信息（即完整披露确碳、减碳、抵碳的核心题项）",
             "使用数字进行信息披露的程度（披露了范围一、范围二、范围三的碳排放量或者能源消耗量（电、煤、石油天然气等）的具体值）",
-            "碳信息披露时间（随年报披露、随披露社会责任报告或可持续发展报告、单独披露碳中和报告或路线图）",
         ]
         
         if len(keywords_1) == 0 and len(keywords_2) == 0 and len(keywords_3) == 0:
             return "", ""
         if name in ignore_name_list:
             return "", ""
+        if name == "碳信息披露时间（随年报披露、随披露社会责任报告或可持续发展报告、单独披露碳中和报告或路线图）":
+            score = 1
+            return "", score 
         if name == "高管有关双碳目标或碳减排的声明与承诺":
             # 获取高管致辞段落
             # pno_paragraphs = get_paragraphs_with_keywords_precisely(self.pdf.document_info, ["致辞", "高管致辞", "董事长致辞", "管理层致辞"], sentence_number=30)
@@ -390,7 +394,7 @@ class PdfAnalyst():
                 number_count = self.get_number_count(content)
                 if number_count:
                     score = 3
-                elif len(sentences) and len(content) > 100:
+                elif len(sentences) and len(content) > 15:
                     score = 2
                 elif len(sentences) and len(content) > 0:
                     score = 1
