@@ -251,6 +251,12 @@ class PdfAnalyst():
         # table_count = sum([page_info["table_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
         # 句子数量
         sentences_count = len(sentences)
+
+        # 如果没有文字内容，则图片数量和表格数量为0
+        if content.strip() == "":
+            image_count = 0
+            table_count = 0
+
         return content, image_count, table_count, sentences_count
 
     def analysis_with_keywords_system2(self, name, method, keywords_1, keywords_2, keywords_3):
