@@ -283,16 +283,30 @@ class PdfProcessor():
                 item["image_count"] = 0
                 item["table_count"] = 0
                 for j in range(i+1, len(new_structure)):
+                    all_in = False
+                    left_axis = 0
+                    right_axis = 0
+                    if abs(new_structure[j]["axis_x_top"]-item["axis_x_top"]) > 5:
+                        left_axis = new_structure[j]["axis_x_top"]-item["axis_x_top"]
+                    if abs(new_structure[j]["axis_x_bottom"]-item["axis_x_bottom"]) > 5:
+                        right_axis = new_structure[j]["axis_x_bottom"]-item["axis_x_bottom"]
+                    if not left_axis * right_axis:
+                        all_in = True    
                     # FIXME 下一块在当前块的上方，这个判断值为负数，需要修改
                     # FIXME 双列情况
-                    if new_structure[j]["axis_y_top"] - item["axis_y_bottom"] < self.y_threshold and new_structure[j]["axis_x_mean"] - item["axis_x_mean"] < self.x_threshold:
+                    if abs(new_structure[j]["axis_y_top"] - item["axis_y_bottom"]) < self.y_threshold and new_structure[j]["axis_x_mean"] - item["axis_x_mean"] < self.x_threshold:
                         # 如果下一块的顶部y坐标与当前块的底部y坐标的差小于阈值，且下一块的x轴与当前块的x轴相差小于阈值（在同一排）则计数
                         if new_structure[j]["type"] == "figure":
                             item["image_count"] += 1
                         elif new_structure[j]["type"] == "table":
                             item["table_count"] += 1
-                    else:
+                    elif all_in:
+                        if new_structure[j]["type"] == "figure":
+                            item["image_count"] += 1
+                        elif new_structure[j]["type"] == "table":
+                            item["table_count"] += 1
                         # 如果下一块的顶部y坐标与当前块的底部y坐标的差大于阈值，则跳出循环
+                    else:
                         break
         
         # 保留text类型的 content、image_count、table_count字段
