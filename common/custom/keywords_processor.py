@@ -267,6 +267,22 @@ def get_paragraphs_with_keywords_precisely(document_info, keywords, sentence_num
     result = remove_duplicate(result) # 去重
     return result
 
+def get_sentences_count(sentences):
+    """
+    描述:
+        获取句子的数量
+    参数:
+        sentences: List[句子]
+    返回值:
+        count: int
+    """
+    pattern = r'[^。!！?？;；,，:：]*[。!！?？;；,，:：]' # 定义正则表达式，用于匹配句子
+    count = 0
+    for sentence in sentences:
+        the_sentences = re.findall(pattern, sentence)
+        count += len(the_sentences)
+    return count
+
 def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2, keywords_type):
     """
     描述: 
@@ -292,7 +308,7 @@ def get_sentences_with_keywords(pno_paragraphs, keywords_1, keywords_2, keywords
     else:
         raise ValueError("keywords_type只能是single或double")
     
-    pattern = r'[^。!！?？;；,，:：]*[。!！?？;；,，:：]' # 定义正则表达式，用于匹配句子
+    pattern = r'[^。!！?？]*[。!！?？]' # 定义正则表达式，用于匹配句子
     result_sentences = [] # 保存结果
     for pno, paragraph in pno_paragraphs:
         # 使用正则表达式查找所有句子的位置

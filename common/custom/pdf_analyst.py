@@ -18,6 +18,7 @@ from common.custom.excel_processor import write_indicators_to_excel2
 from common.custom.excel_processor import read_ESG_from_excel
 from common.custom.excel_processor import read_terms_from_excel
 from common.custom.keywords_processor import split_keywords
+from common.custom.keywords_processor import get_sentences_count
 from common.custom.keywords_processor import get_table_image_count
 from common.custom.keywords_processor import get_paragraphs_with_keywords
 from common.custom.keywords_processor import get_paragraphs_with_keywords_precisely
@@ -254,13 +255,15 @@ class PdfAnalyst():
         # 获取图片数量和表格数量
         # image_count = sum([page_info["image_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
         # table_count = sum([page_info["table_count"] for page_info in self.pdf.document_info if page_info["pno"] in pno_list])
+        
         # 句子数量
-        sentences_count = len(sentences)
+        sentences_count = get_sentences_count(sentences)
 
         # 如果没有文字内容，则图片数量和表格数量为0
         if content.strip() == "":
             image_count = 0
             table_count = 0
+            sentences_count = 0
 
         return content, image_count, table_count, sentences_count
 
