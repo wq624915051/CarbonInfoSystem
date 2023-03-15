@@ -369,25 +369,23 @@ class PdfAnalyst():
 
         elif "充分披露了企业碳排放相关信息" in name:
             "充分披露了企业碳排放相关信息（即完整披露确碳、减碳、抵碳的核心题项）"
-            print(name)
             # 计算前三个一级指标的平均分
             score_list = []
             for indicator_level_1 in self.indicators:
                 for indicator_level_2 in indicator_level_1["二级指标"]:
                     for indicator_level_3 in indicator_level_2["三级指标"]:
-                        score_list.append(indicator_level_3["最终得分"])
+                        if "最终得分" in indicator_level_3.keys():
+                            score_list.append(float(indicator_level_3["最终得分"]))
             score = np.average(score_list)
             return "", score
 
         elif name == "企业披露的碳排放量涵盖了组织边界和运营边界以内的总排放量":
-            print(name)
             score_var1 = self.indicators[0]["二级指标"][0]["三级指标"][0]["最终得分"]
             score_var2 = self.indicators[0]["二级指标"][0]["三级指标"][1]["最终得分"]
             score = 1 if (score_var1 != 0 or score_var2 != 0) else 0
             return "", score
         
         elif "使用数字进行信息披露的程度" in name:
-            print(name)
             "使用数字进行信息披露的程度（披露了范围一、范围二、范围三的碳排放量或者能源消耗量（电、煤、石油天然气等）的具体值）"
             # 范围一
             range_1_key_2 = ["范围一", "范畴一"]
@@ -455,7 +453,7 @@ class PdfAnalyst():
                     # 如果筛选出来的文本内含有以下数字，则得分1分
                     year_list = [2025, 2030, 2045, 2050, 2060]
                     for year in year_list:
-                        if year in content:
+                        if str(year) in content:
                             return content, 1
                     return content, 0
                 return content, ""

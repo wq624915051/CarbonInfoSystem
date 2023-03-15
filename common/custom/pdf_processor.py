@@ -162,7 +162,6 @@ class PdfProcessor():
             "table_count": table_count,
             "new_structure": new_structure
         } 
-        print(page_info)
         return page_info
 
     def get_content_by_PPStructure(self, structure):
@@ -292,7 +291,6 @@ class PdfProcessor():
                         right_axis = new_structure[j]["axis_x_bottom"]-item["axis_x_bottom"]
                     if left_axis * right_axis <= 0:
                         all_in = True    
-                    print(all_in)
                     # FIXME 下一块在当前块的上方，这个判断值为负数，需要修改
                     # FIXME 双列情况
                     if abs(new_structure[j]["axis_y_top"] - item["axis_y_bottom"]) < self.y_threshold and new_structure[j]["axis_x_mean"] - item["axis_x_mean"] < self.x_threshold:
