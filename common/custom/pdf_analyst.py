@@ -377,7 +377,21 @@ class PdfAnalyst():
                         if "最终得分" in indicator_level_3.keys():
                             score_list.append(float(indicator_level_3["最终得分"]))
             score = np.average(score_list)
-            return "", score
+            '''
+            大于等于75%，赋值为3，
+            在50%~75%之间，赋值为2，
+            在25%~50%之间，赋值为1，否则，为0
+            '''
+            if score >= 0.75:
+                score_s = 3
+            elif score >= 0.5:
+                score_s = 2
+            elif score >= 0.25:
+                score_s = 1
+            else:
+                score_s = 0
+
+            return "", score_s
 
         elif name == "企业披露的碳排放量涵盖了组织边界和运营边界以内的总排放量":
             score_var1 = self.indicators[0]["二级指标"][0]["三级指标"][0]["最终得分"]
