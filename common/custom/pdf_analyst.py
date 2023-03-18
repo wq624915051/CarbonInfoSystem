@@ -9,7 +9,6 @@ import jieba
 import datetime
 import numpy as np
 
-
 from django.conf import settings
 from common.base.base_respons import retJson
 from common.custom.pdf_processor import PdfProcessor, clean_content
@@ -374,7 +373,7 @@ class PdfAnalyst():
             for indicator_level_1 in self.indicators:
                 for indicator_level_2 in indicator_level_1["二级指标"]:
                     for indicator_level_3 in indicator_level_2["三级指标"]:
-                        if "最终得分" in indicator_level_3.keys():
+                        if "最终得分" in indicator_level_3.keys() and int == type(indicator_level_3["最终得分"]):
                             score_list.append(float(indicator_level_3["最终得分"]))
             score = np.average(score_list)
             '''
