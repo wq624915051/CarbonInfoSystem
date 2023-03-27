@@ -462,7 +462,7 @@ class PdfAnalyst():
                     return content, score
 
             elif method == "关键词+数字":
-                if name == "是否设定碳达峰、碳中和年份":
+                if name == "是否设定碳达峰、碳中和年份" or name == "设定碳排放目标类型":
                     # 如果筛选出来的文本内含有以下数字，则得分1分
                     year_list = [2025, 2030, 2045, 2050, 2060]
                     for year in year_list:
